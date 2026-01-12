@@ -368,7 +368,23 @@ async function handleFormSubmit(event) {
 
             try {
                 const errorData = JSON.parse(rawText);
-                errorMsg = errorData.error || errorData.message || `Erro ${response.status}`;
+
+                // Trata erro se for objeto (comum no Vercel/Node)
+                if (errorData.error && typeof errorData.error === 'object') {
+                    errorMsg = errorData.error.message || JSON.stringify(errorData.error);
+                } else {
+                    errorMsg = errorData.error || errorData.message || `Erro ${response.status}`;
+                }
+
+                // Adiciona detalhes técnicos se houver (para debug)
+                if (errorData.details) {
+                    errorMsg += ` (${errorData.details})`;
+                }
+
+                // Adiciona dica se houver
+                if (errorData.tip) {
+                    errorMsg += `. ${errorData.tip}`;
+                }
             } catch (e) {
                 // Se não for JSON, usa o texto puro (limitado a 200 chars para não poluir alerta)
                 // Geralmente isso acontece quando estouramos limite de memória ou erro fatal do Node
