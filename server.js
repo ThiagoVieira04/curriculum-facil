@@ -1327,12 +1327,14 @@ app.use((error, req, res, next) => {
     });
 });
 
-// Iniciar servidor com tratamento de erro
-const server = app.listen(PORT, () => {
-    logger.success(`Servidor rodando na porta ${PORT}`);
-    logger.info(`Acesse: http://localhost:${PORT}`);
-    logger.info(`Memória inicial: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
-});
+// Iniciar servidor apenas se não for invocado por requerimento (Vercel/Testes)
+if (require.main === module) {
+    const server = app.listen(PORT, () => {
+        logger.success(`Servidor rodando na porta ${PORT}`);
+        logger.info(`Acesse: http://localhost:${PORT}`);
+        logger.info(`Memória inicial: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+    });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
