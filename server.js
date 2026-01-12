@@ -735,8 +735,9 @@ app.all('/api/download-pdf/:id?', async (req, res) => {
         } catch (launchError) {
             console.error('Erro ao iniciar browser:', launchError);
             return res.status(500).json({
-                error: 'Serviço de PDF temporiamente indisponível',
-                tip: 'Tente novamente em alguns minutos'
+                error: 'Erro técnico ao iniciar gerador de PDF',
+                details: launchError.message || launchError.toString(),
+                tip: 'Verifique os logs do Vercel para mais detalhes'
             });
         }
 
