@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
-const sharp = require('sharp');
+// Retirando requires topo de nível de bibliotecas nativas para evitar erros em Serverless/Vercel
+// const sharp = require('sharp');
 // const puppeteer = require('puppeteer'); // Removido para evitar crash no Vercel (Cold Start)
 let puppeteer;
 try {
@@ -120,18 +121,36 @@ async function improveTextWithAI(text, context) {
     return improvements[context] ? improvements[context](text) : text;
 }
 
-// Função para processar foto
+// Função para processar foto com Fallback
 async function processPhoto(buffer) {
     try {
-        const processedImage = await sharp(buffer)
-            .resize(200, 200, {
-                fit: 'cover',
-                position: 'center'
-            })
-            .jpeg({ quality: 90 })
-            .toBuffer();
+        // Tenta carregar o sharp apenas quando necessário
+        let sharp;
+        try {
+            sharp = require('sharp');
+        } catch (e) {
+            console.warn('Sharp module not found or incompatible. Using fallback.');
+        }
 
-        return `data:image/jpeg;base64,${processedImage.toString('base64')}`;
+        if (sharp) {
+            const processedImage = await sharp(buffer)
+                .resize(200, 200, {
+                    fit: 'cover',
+                    position: 'center'
+                })
+                .jpeg({ quality: 90 })
+                .toBuffer();
+
+            return `data:image/jpeg;base64,${processedImage.toString('base64')}`;
+        } else {
+            // Fallback: Retorna a imagem original sem processamento (se não for muito grande)
+            // Limitando fallback a 500KB para não estourar payload
+            if (buffer.length > 500 * 1024) {
+                console.warn('Foto original muito grande para fallback sem processamento.');
+                return null;
+            }
+            return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+        }
     } catch (error) {
         console.error('Erro ao processar foto:', error);
         return null;
