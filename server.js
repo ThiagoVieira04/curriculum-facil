@@ -146,7 +146,7 @@ async function processPhoto(buffer) {
 
         if (sharp) {
             const processedImage = await sharp(buffer)
-                .resize(200, 200, {
+                .resize(90, 120, {
                     fit: 'cover',
                     position: 'center'
                 })
@@ -183,7 +183,7 @@ const templates = {
     simples: (data) => `
         <div style="font-family: Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 40px; line-height: 1.6; background: white;">
             <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 30px;">
-                ${data.photo ? `<img src="${data.photo}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">` : ''}
+                ${data.photo ? `<img src="${data.photo}" style="width: 90px; height: 120px; border-radius: 4px; object-fit: cover;">` : ''}
                 <div style="text-align: left;">
                     <h1 style="margin: 0; color: #333; font-size: ${calculateNameFontSize(data.nome)}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.nome}</h1>
                     <h2 style="margin: 10px 0; color: #666; font-size: 20px; font-weight: normal;">${data.cargo}</h2>
@@ -252,13 +252,18 @@ const templates = {
             <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #888; font-size: 12px;">
                 ${data.nome}
             </div>
+            
+            <!-- Assinatura -->
+            <div style="margin-top: 20px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                Desenvolvido por Papel e Sonhos Informática
+            </div>
         </div>
     `,
 
     moderno: (data) => `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 750px; margin: 0 auto; padding: 0; line-height: 1.6; background: white;">
             <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 40px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px;">
-                ${data.photo ? `<img src="${data.photo}" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); object-fit: cover;">` : ''}
+                ${data.photo ? `<img src="${data.photo}" style="width: 90px; height: 120px; border-radius: 4px; border: 4px solid rgba(255,255,255,0.3); object-fit: cover;">` : ''}
                 <div style="text-align: left;">
                     <h1 style="margin: 0; font-size: ${calculateNameFontSize(data.nome)}; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.nome}</h1>
                     <h2 style="margin: 10px 0; font-size: 20px; font-weight: normal; opacity: 0.9;">${data.cargo}</h2>
@@ -328,6 +333,11 @@ const templates = {
                 <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #888; font-size: 12px;">
                     ${data.nome}
                 </div>
+                
+                <!-- Assinatura -->
+                <div style="margin-top: 20px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                    Desenvolvido por Papel e Sonhos Informática
+                </div>
             </div>
         </div>
     `,
@@ -336,7 +346,7 @@ const templates = {
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; background: white; display: flex; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 1000px;">
             <!-- Coluna Lateral (Esquerda) -->
             <div style="width: 30%; background-color: #2c3e50; color: white; padding: 30px 20px; text-align: center;">
-                ${data.photo ? `<div style="width: 150px; height: 150px; margin: 0 auto 20px; border-radius: 50%; border: 4px solid #34495e; overflow: hidden;"><img src="${data.photo}" style="width: 100%; height: 100%; object-fit: cover;"></div>` : ''}
+                ${data.photo ? `<div style="width: 112.5px; height: 150px; margin: 0 auto 20px; border-radius: 4px; border: 4px solid #34495e; overflow: hidden;"><img src="${data.photo}" style="width: 100%; height: 100%; object-fit: cover;"></div>` : ''}
                 
                 <div style="text-align: left; margin-top: 30px;">
                     <div style="margin-bottom: 30px;">
@@ -434,6 +444,11 @@ const templates = {
                         <p style="color: #34495e; font-size: 14px; line-height: 1.6;">${data.cursos}</p>
                     </div>
                 ` : ''}
+                
+                <!-- Assinatura -->
+                <div style="margin-top: 30px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                    Desenvolvido por Papel e Sonhos Informática
+                </div>
             </div>
         </div>
     `,
@@ -441,7 +456,7 @@ const templates = {
     criativo: (data) => `
         <div style="font-family: 'Segoe UI', Roboto, sans-serif; max-width: 750px; margin: 0 auto; padding: 0; line-height: 1.6; background: white;">
             <div style="background: #1e293b; color: white; padding: 40px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px;">
-                ${data.photo ? `<img src="${data.photo}" style="width: 120px; height: 120px; border-radius: 20px; border: 3px solid #38bdf8; object-fit: cover;">` : ''}
+                ${data.photo ? `<img src="${data.photo}" style="width: 90px; height: 120px; border-radius: 4px; border: 3px solid #38bdf8; object-fit: cover;">` : ''}
                 <div style="text-align: left;">
                     <h1 style="margin: 0; color: #38bdf8; font-size: ${calculateNameFontSize(data.nome)}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.nome}</h1>
                     <h2 style="margin: 10px 0; color: white; font-size: 20px; font-weight: normal; opacity: 0.9;">${data.cargo}</h2>
@@ -511,6 +526,11 @@ const templates = {
                 <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: right; font-style: italic; color: #94a3b8; font-size: 12px;">
                     ${data.nome}
                 </div>
+                
+                <!-- Assinatura -->
+                <div style="margin-top: 20px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                    Desenvolvido por Papel e Sonhos Informática
+                </div>
             </div>
         </div>
     `,
@@ -518,7 +538,7 @@ const templates = {
     elegante: (data) => `
         <div style="font-family: Georgia, serif; max-width: 750px; margin: 0 auto; padding: 40px; line-height: 1.6; background: white; color: #2c3e50;">
             <div style="display: flex; align-items: center; gap: 30px; margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 30px;">
-                ${data.photo ? `<img src="${data.photo}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; filter: grayscale(100%);">` : ''}
+                ${data.photo ? `<img src="${data.photo}" style="width: 90px; height: 120px; border-radius: 4px; object-fit: cover; filter: grayscale(100%);">` : ''}
                 <div style="text-align: left;">
                     <h1 style="margin: 0; color: #1a1a1a; font-size: ${calculateNameFontSize(data.nome)}; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.nome}</h1>
                     <h2 style="margin: 10px 0; color: #7f8c8d; font-size: 20px; font-weight: normal; font-style: italic;">${data.cargo}</h2>
@@ -586,6 +606,11 @@ const templates = {
             <!-- Rodapé com nome -->
             <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #95a5a6; font-size: 12px;">
                 ${data.nome}
+            </div>
+            
+            <!-- Assinatura -->
+            <div style="margin-top: 20px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                Desenvolvido por Papel e Sonhos Informática
             </div>
         </div>
     `

@@ -462,8 +462,8 @@
 
     .photo-preview {
         max-width: 150px;
-        max-height: 150px;
-        border-radius: 8px;
+        max-height: 200px;
+        border-radius: 4px;
         margin: 1rem auto;
     }
 

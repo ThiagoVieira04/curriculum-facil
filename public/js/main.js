@@ -8,7 +8,7 @@ let isSubmitting = false; // Previne duplo submit
 
 // Configurações
 const CONFIG = {
-    MAX_FILE_SIZE: 2 * 1024 * 1024, // 2MB
+    MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
     ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png'],
     DEBOUNCE_DELAY: 1000,
     MAX_TEXT_LENGTH: 2000
@@ -156,7 +156,7 @@ function showFormPage() {
                                 <input type="file" id="photo" accept="image/jpeg,image/png" style="display:none;">
                                 <div id="photo-placeholder">
                                     <p>📷 Clique ou arraste uma foto</p>
-                                    <small>JPG ou PNG, máximo 2MB</small>
+                                    <small>JPG ou PNG, máximo 5MB</small>
                                 </div>
                                 <img id="photo-preview" class="photo-preview hidden" alt="Preview da foto">
                             </div>
@@ -643,7 +643,7 @@ function showTemplatePreview(templateType) {
         simples: (data) => `
             <div style="font-family: Arial, sans-serif; width: 100%; max-width: 750px; margin: 0 auto; padding: 20px; line-height: 1.6; border: 1px solid #ddd; background: white; box-sizing: border-box; overflow-x: hidden;">
                 <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 30px; flex-wrap: wrap;">
-                    <div style="width: 80px; height: 80px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+                    <div style="width: 60px; height: 80px; background: #eee; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
                     <div style="text-align: left;">
                         <h1 style="margin: 0; color: #333; font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MARIA SILVA SANTOS</h1>
                         <h2 style="margin: 5px 0; color: #666; font-size: 16px; font-weight: normal;">Analista de Marketing Digital</h2>
@@ -672,13 +672,18 @@ function showTemplatePreview(templateType) {
                 <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #888; font-size: 10px;">
                     MARIA SILVA SANTOS
                 </div>
+                
+                <!-- Assinatura -->
+                <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #aaa; opacity: 0.7;">
+                    Desenvolvido por Papel e Sonhos Informática
+                </div>
             </div>
         `,
 
         moderno: (data) => `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 100%; max-width: 750px; margin: 0 auto; padding: 0; line-height: 1.6; border: 1px solid #ddd; background: white; box-sizing: border-box; overflow-x: hidden;">
                 <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 25px; flex-wrap: wrap;">
-                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; border: 3px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+                    <div style="width: 60px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 3px; border: 3px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
                     <div style="text-align: left;">
                         <h1 style="margin: 0; font-size: 32px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MARIA SILVA SANTOS</h1>
                         <h2 style="margin: 5px 0; font-size: 16px; font-weight: normal; opacity: 0.9;">Analista de Marketing Digital</h2>
@@ -708,6 +713,11 @@ function showTemplatePreview(templateType) {
                     <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #888; font-size: 10px;">
                         MARIA SILVA SANTOS
                     </div>
+                    
+                    <!-- Assinatura -->
+                    <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #aaa; opacity: 0.7;">
+                        Desenvolvido por Papel e Sonhos Informática
+                    </div>
                 </div>
             </div>
         `,
@@ -716,7 +726,7 @@ function showTemplatePreview(templateType) {
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; width: 100%; max-width: 750px; margin: 0 auto; background: white; display: flex; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 1px solid #ddd; min-height: 800px;">
                 <!-- Coluna Lateral (Esquerda) -->
                 <div style="width: 30%; background-color: #2c3e50; color: white; padding: 20px 15px; text-align: center;">
-                    <div style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; border: 3px solid #34495e; background: #ecf0f1; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #2c3e50;">👤</div>
+                    <div style="width: 60px; height: 80px; margin: 0 auto 20px; border-radius: 3px; border: 3px solid #34495e; background: #ecf0f1; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #2c3e50;">👤</div>
                     
                     <div style="text-align: left; margin-top: 20px;">
                         <div style="margin-bottom: 20px;">
@@ -755,6 +765,11 @@ function showTemplatePreview(templateType) {
                         </h3>
                         <p style="color: #34495e; font-size: 10px; text-align: justify;">Graduação em Marketing pela Universidade Mackenzie (2019-2022).</p>
                     </div>
+                    
+                    <!-- Assinatura -->
+                    <div style="text-align: center; font-size: 7px; color: #aaa; opacity: 0.7; margin-top: 15px;">
+                        Desenvolvido por Papel e Sonhos Informática
+                    </div>
                 </div>
             </div>
         `,
@@ -762,7 +777,7 @@ function showTemplatePreview(templateType) {
         criativo: (data) => `
             <div style="font-family: 'Segoe UI', Roboto, sans-serif; width: 100%; max-width: 750px; margin: 0 auto; padding: 0; line-height: 1.6; border: 1px solid #ddd; background: white; box-sizing: border-box; overflow-x: hidden;">
                 <div style="background: #1e293b; color: white; padding: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 25px; flex-wrap: wrap;">
-                    <div style="width: 80px; height: 80px; background: #334155; border: 3px solid #38bdf8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
+                    <div style="width: 60px; height: 80px; background: #334155; border: 3px solid #38bdf8; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 30px;">👤</div>
                     <div style="text-align: left;">
                         <h1 style="margin: 0; color: #38bdf8; font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MARIA SILVA SANTOS</h1>
                         <h2 style="margin: 5px 0; color: white; font-size: 16px; font-weight: normal; opacity: 0.9;">Analista de Marketing Digital</h2>
@@ -792,6 +807,11 @@ function showTemplatePreview(templateType) {
                     <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: right; font-style: italic; color: #94a3b8; font-size: 10px;">
                         MARIA SILVA SANTOS
                     </div>
+                    
+                    <!-- Assinatura -->
+                    <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #aaa; opacity: 0.7;">
+                        Desenvolvido por Papel e Sonhos Informática
+                    </div>
                 </div>
             </div>
         `,
@@ -799,7 +819,7 @@ function showTemplatePreview(templateType) {
         elegante: (data) => `
             <div style="font-family: Georgia, serif; width: 100%; max-width: 750px; margin: 0 auto; padding: 20px; line-height: 1.6; border: 1px solid #ddd; background: white; color: #2c3e50; box-sizing: border-box; overflow-x: hidden;">
                 <div style="display: flex; align-items: center; gap: 25px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 25px; flex-wrap: wrap;">
-                    <div style="width: 80px; height: 80px; background: #fdfdfd; border: 1px solid #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; filter: grayscale(100%);">👤</div>
+                    <div style="width: 60px; height: 80px; background: #fdfdfd; border: 1px solid #eee; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 30px; filter: grayscale(100%);">👤</div>
                     <div style="text-align: left; flex: 1;">
                         <h1 style="margin: 0; color: #1a1a1a; font-size: 32px; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MARIA SILVA SANTOS</h1>
                         <h2 style="margin: 5px 0; color: #7f8c8d; font-size: 16px; font-weight: normal; font-style: italic;">Analista de Marketing Digital</h2>
@@ -827,6 +847,11 @@ function showTemplatePreview(templateType) {
                 <!-- Rodapé com nome -->
                 <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #95a5a6; font-size: 10px;">
                     MARIA SILVA SANTOS
+                </div>
+                
+                <!-- Assinatura -->
+                <div style="margin-top: 15px; text-align: center; font-size: 8px; color: #aaa; opacity: 0.7;">
+                    Desenvolvido por Papel e Sonhos Informática
                 </div>
             </div>
         `
