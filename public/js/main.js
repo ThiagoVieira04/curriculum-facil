@@ -83,7 +83,7 @@ function showFormPage() {
         <main style="padding-top: 100px;">
             <div class="container">
                 <div class="form-container">
-                    <h2 style="text-align:center;margin-bottom:2rem;color:#1e293b;">Criar Seu Currículo</h2>
+                    <h2 style="text-align:center;margin-bottom:1rem;color:#1e293b;">Criar Seu Currículo</h2>
                     
                     <!-- AdSense - Banner Formulário -->
                     <div class="ad-banner">
