@@ -72,21 +72,6 @@ nav h1 {
     align-items: center;
 }
 
-.nav-links a.home-btn {
-    background: #2563eb;
-    color: white;
-    padding: 8px 20px;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
-}
-
-.nav-links a.home-btn:hover {
-    background: #1d4ed8;
-    color: white;
-    transform: translateY(-1px);
-}
-
 .nav-links a {
     text-decoration: none;
     color: #64748b;
