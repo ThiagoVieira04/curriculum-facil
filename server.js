@@ -2,15 +2,7 @@ const express = require('express');
 const multer = require('multer');
 // Retirando requires topo de nível de bibliotecas nativas para evitar erros em Serverless/Vercel
 // const sharp = require('sharp');
-// const puppeteer = require('puppeteer'); // Removido para evitar crash no Vercel (Cold Start)
-let puppeteer;
-try {
-    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-        puppeteer = require('puppeteer');
-    }
-} catch (e) {
-    console.warn('Puppeteer dev dependency not found (safe in production)');
-}
+// Puppeteer será carregado dinamicamente quando necessário
 const path = require('path');
 const fs = require('fs').promises;
 const cors = require('cors');
@@ -815,7 +807,10 @@ app.all('/api/download-pdf/:id?', async (req, res) => {
                 ]
             };
 
+            // Carregamento dinâmico do Puppeteer baseado no ambiente
             if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+                // Ambiente de produção (Vercel)
+                console.log('[PDF] Inicializando Puppeteer para produção/Vercel');
                 const chromium = require('@sparticuz/chromium-min');
                 const puppeteerCore = require('puppeteer-core');
 
@@ -827,14 +822,37 @@ app.all('/api/download-pdf/:id?', async (req, res) => {
                     ignoreHTTPSErrors: true
                 });
             } else {
+                // Ambiente de desenvolvimento local
+                console.log('[PDF] Inicializando Puppeteer para desenvolvimento');
+                let puppeteer;
+                try {
+                    // Tenta carregar puppeteer da pasta node_modules
+                    puppeteer = require('puppeteer');
+                } catch (reqError) {
+                    console.error('[PDF] Erro ao carregar puppeteer:', reqError.message);
+                    throw new Error('Puppeteer não está instalado. Execute: npm install puppeteer');
+                }
+
+                if (!puppeteer || typeof puppeteer.launch !== 'function') {
+                    throw new Error('Puppeteer carregado mas método launch não está disponível');
+                }
+
                 browser = await puppeteer.launch(launchOptions);
             }
+
+            if (!browser) {
+                throw new Error('Browser não foi inicializado corretamente');
+            }
+
+            console.log('[PDF] Browser iniciado com sucesso');
         } catch (launchError) {
-            console.error('Erro ao iniciar browser:', launchError);
+            console.error('[PDF] Erro ao iniciar browser:', launchError);
             return res.status(500).json({
                 error: 'Erro técnico ao iniciar gerador de PDF',
                 details: launchError.message || launchError.toString(),
-                tip: 'Verifique os logs do Vercel para mais detalhes'
+                tip: launchError.message.includes('npm install')
+                    ? 'Execute "npm install puppeteer" no servidor'
+                    : 'Tente novamente. Se o problema persistir, entre em contato com o suporte.'
             });
         }
 
