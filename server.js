@@ -15,10 +15,10 @@ const fileType = require('file-type');
 const config = require('./config');
 const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
 
-// Rotas extras (comentadas até serem criadas)
-// const sobreRoute = require('./sobre-route');
-// const contatoRoute = require('./contato-route');
-// const dicasRoute = require('./dicas-route');
+// Rotas extras
+const sobreRoute = require('./sobre-route');
+const contatoRoute = require('./contato-route');
+const dicasRoute = require('./dicas-route');
 
 const app = express();
 const PORT = config.PORT;
@@ -73,10 +73,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// Integrar Rotas (comentadas)
-// app.use('/sobre', sobreRoute);
-// app.use('/contato', contatoRoute);
-// app.use('/dicas', dicasRoute);
+// Integrar Rotas
+app.use('/sobre', sobreRoute);
+app.use('/contato', contatoRoute);
+app.use('/dicas', dicasRoute);
 
 // Configuração do Multer otimizada
 const storage = multer.memoryStorage();
