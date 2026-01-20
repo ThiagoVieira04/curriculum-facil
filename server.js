@@ -23,22 +23,25 @@ const dicasRoute = require('./dicas-route');
 const app = express();
 const PORT = config.PORT;
 
-// Rate limiting otimizado
+// Rate limiting DESABILITADO para desenvolvimento
 const rateLimitMap = new Map();
 
 function rateLimit(req, res, next) {
+    // BYPASS completo durante desenvolvimento
+    if (process.env.NODE_ENV !== 'production') {
+        return next();
+    }
+    
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
-
-    // Limpeza automática
     const cleaned = rateLimiting.cleanupOldEntries(rateLimitMap);
     if (cleaned > 0) {
         logger.info(`Rate limit cleanup: ${cleaned} entries removed`);
     }
 
     const result = rateLimiting.checkRateLimit(ip, rateLimitMap);
-
+    
     if (!result.allowed) {
-        return res.status(429).json({
+        return res.status(429).json({ 
             error: 'Muitas tentativas. Tente novamente em 1 hora.',
             retryAfter: result.retryAfter
         });
