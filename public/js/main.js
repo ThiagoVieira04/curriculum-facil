@@ -399,6 +399,11 @@ async function handleFormSubmit(event) {
         lastGeneratedCV = result;
         showPreview(result);
 
+        // Gatilho Análise ATS Pós-Criação
+        const dataObj = {};
+        formData.forEach((value, key) => { dataObj[key] = value; });
+        triggerPostCreationATS(dataObj);
+
         // Analytics
         trackEvent('cv_generated', {
             template: result.template || 'simples',
@@ -975,3 +980,130 @@ function trackEvent(eventName, parameters = {}) {
         console.warn('Analytics error:', error);
     }
 }
+
+// --- Lógica de Análise ATS ---
+
+// Análise Pré-Criação (Upload de arquivo)
+async function handleATSAnalyzeFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Feedback visual
+    const btn = document.querySelector('button[onclick*="ats-upload"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⌛ Analisando...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    try {
+        const response = await fetch('/api/ats-analyze-file', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Falha na análise');
+
+        const report = await response.json();
+        displayATSReport(report);
+        trackEvent('ats_analyze_file_success', { score: report.score });
+    } catch (error) {
+        console.error('Erro ao analisar arquivo:', error);
+        showError('Erro ao analisar o arquivo. Verifique se é um PDF ou DOCX válido.');
+        trackEvent('ats_analyze_file_error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        event.target.value = ''; // Limpa o input
+    }
+}
+
+// Análise Pós-Criação (Automática após gerar)
+async function triggerPostCreationATS(data) {
+    try {
+        const response = await fetch('/api/ats-analyze-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data })
+        });
+
+        if (!response.ok) throw new Error('Falha na análise');
+
+        const report = await response.json();
+        // Armazena no estado global se necessário
+        window.lastATSReport = report;
+
+        // Atualiza a UI de preview com um resumo ATS
+        injectATSSummaryIntoPreview(report);
+        trackEvent('ats_analyze_data_success', { score: report.score });
+    } catch (error) {
+        console.error('Erro na análise pós-criação:', error);
+    }
+}
+
+// Exibir Relatório Completo (Modal)
+function displayATSReport(report) {
+    const modal = document.getElementById('ats-modal');
+    const scoreVal = document.getElementById('ats-score-value');
+    const badge = document.getElementById('ats-status-badge');
+    const strengthsList = document.getElementById('ats-strengths');
+    const improvementsList = document.getElementById('ats-improvements');
+    const suggestionsList = document.getElementById('ats-suggestions');
+
+    // Score e Badge
+    scoreVal.textContent = report.score;
+
+    if (report.score >= 80) {
+        badge.textContent = 'BOM';
+        badge.style.backgroundColor = '#dcfce7';
+        badge.style.color = '#15803d';
+    } else if (report.score >= 50) {
+        badge.textContent = 'PODE MELHORAR';
+        badge.style.backgroundColor = '#fef3c7';
+        badge.style.color = '#92400e';
+    } else {
+        badge.textContent = 'ATENÇÃO';
+        badge.style.backgroundColor = '#fee2e2';
+        badge.style.color = '#b91c1c';
+    }
+
+    // Listas
+    strengthsList.innerHTML = report.strengths.map(s => `<li>✅ ${s}</li>`).join('');
+    improvementsList.innerHTML = report.improvements.map(i => `<li>🔸 ${i}</li>`).join('');
+    suggestionsList.innerHTML = report.suggestions.map(s => `<li>• ${s}</li>`).join('');
+
+    modal.style.display = 'block';
+}
+
+function closeATSModal() {
+    document.getElementById('ats-modal').style.display = 'none';
+}
+
+// Injetar resumo ATS no preview do currículo
+function injectATSSummaryIntoPreview(report) {
+    const previewContainer = document.querySelector('.preview-container');
+    if (!previewContainer) return;
+
+    // Remove resumo anterior se existir
+    const existingSummary = document.getElementById('ats-preview-summary');
+    if (existingSummary) existingSummary.remove();
+
+    const summaryHtml = `
+        <div id="ats-preview-summary" style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; animation: fadeIn 0.5s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong style="color: #1e293b;">🤖 Análise ATS Automática:</strong>
+                    <span style="margin-left: 10px; font-weight: bold; color: ${report.score >= 70 ? '#059669' : '#d97706'}">${report.score}/100</span>
+                </div>
+                <button onclick="window.displayATSReport(window.lastATSReport)" style="background: #2563eb; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">Ver Detalhes</button>
+            </div>
+        </div>
+    `;
+
+    previewContainer.insertAdjacentHTML('beforeend', summaryHtml);
+}
+
+// Expondo para o escopo global para o botão do preview
+window.displayATSReport = displayATSReport;
+window.lastATSReport = null;

@@ -51,9 +51,16 @@
                 <div class="hero-content">
                     <h2>Crie seu Currículo Profissional em 3 Minutos</h2>
                     <p>100% Gratuito • Sem Cadastro • Com IA • Download PDF</p>
-                    <button class="cta-button" onclick="startCreation()">
-                        🚀 Criar Currículo Grátis
-                    </button>
+                    <div class="cta-container">
+                        <button class="cta-button" onclick="startCreation()">
+                            🚀 Criar Currículo Grátis
+                        </button>
+                        <button class="cta-button secondary" onclick="document.getElementById('ats-upload').click()">
+                            🔍 Analisar Currículo Existente (ATS)
+                        </button>
+                        <input type="file" id="ats-upload" style="display: none;" accept=".pdf,.docx"
+                            onchange="handleATSAnalyzeFile(event)">
+                    </div>
                     <div class="trust-indicators">
                         <span>✅ Mais de 50.000 currículos criados</span>
                         <span>✅ Aprovado por recrutadores</span>
@@ -229,6 +236,58 @@
             </div>
         </section>
     </main>
+
+    <!-- Modal de Análise ATS -->
+    <div id="ats-modal" class="modal"
+        style="display:none;position:fixed;z-index:1001;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.8);">
+        <div class="modal-content"
+            style="background:white;margin:5% auto;padding:30px;width:90%;max-width:600px;border-radius:12px;position:relative;max-height:85vh;overflow-y:auto;box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <span class="close" onclick="closeATSModal()"
+                style="position:absolute;top:15px;right:25px;font-size:30px;cursor:pointer;color:#666;">&times;</span>
+
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #333; margin-bottom: 10px;">📊 Relatório de Análise ATS</h2>
+                <div id="ats-score-container"
+                    style="display: inline-block; padding: 20px; border-radius: 50%; background: #f0f7ff; margin: 10px 0;">
+                    <span id="ats-score-value" style="font-size: 48px; font-weight: bold; color: #2563eb;">0</span>
+                    <div style="font-size: 14px; color: #666;">Pontuação</div>
+                </div>
+                <div id="ats-status-badge"
+                    style="margin-top: 10px; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; background: #eee;">
+                    -</div>
+            </div>
+
+            <div id="ats-report-content">
+                <div class="report-section">
+                    <h4 style="color: #059669; margin-bottom: 10px;">✅ Pontos Fortes</h4>
+                    <ul id="ats-strengths"
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;">
+                    </ul>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                <div class="report-section">
+                    <h4 style="color: #d97706; margin-bottom: 10px;">⚠️ Oportunidades de Melhoria</h4>
+                    <ul id="ats-improvements"
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;">
+                    </ul>
+                </div>
+
+                <div id="ats-suggestions-box"
+                    style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; text-align: left;">
+                    <h5 style="margin: 0 0 10px 0; color: #92400e;">💡 Dicas Práticas</h5>
+                    <ul id="ats-suggestions"
+                        style="list-style-type: none; padding: 0; font-size: 14px; color: #78350f; display: flex; flex-direction: column; gap: 6px;">
+                    </ul>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-top:30px;">
+                <button onclick="closeATSModal()" class="cta-button" style="padding: 10px 30px;">Entendi</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container">

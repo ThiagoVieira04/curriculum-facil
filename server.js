@@ -7,6 +7,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const cors = require('cors');
 const helmet = require('helmet');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 
 // Configurações e utilitários
 const config = require('./config');
@@ -159,6 +161,91 @@ async function processPhoto(buffer) {
         console.error('Erro ao processar foto:', error);
         return null;
     }
+}
+
+// Lógica de Análise ATS
+function analyzeATS(text, data = {}) {
+    const report = {
+        score: 0,
+        strengths: [],
+        improvements: [],
+        suggestions: []
+    };
+
+    if (!text) return report;
+
+    const lowerText = text.toLowerCase();
+    let score = 0;
+
+    // 1. Informações de Contato (Peso: 15)
+    const hasEmail = /[\w.-]+@[\w.-]+\.\w+/.test(text);
+    const hasPhone = /(\(?\d{2}\)?\s?\d{4,5}-?\d{4})/.test(text);
+    if (hasEmail && hasPhone) {
+        score += 15;
+        report.strengths.push("Informações de contato completas (email e telefone).");
+    } else {
+        report.improvements.push("Faltam informações de contato claras.");
+        report.suggestions.push("Certifique-se de que seu email e telefone estão bem visíveis.");
+    }
+
+    // 2. Seções Principais (Peso: 25)
+    const sections = [
+        { name: "Experiência", keywords: ["experiência", "histórico profissional", "atuação", "trajetória"] },
+        { name: "Formação", keywords: ["formação", "escolaridade", "educação", "graduação", "acadêmico"] },
+        { name: "Habilidades", keywords: ["habilidades", "competências", "conhecimentos", "skills", "tecnologias"] },
+        { name: "Objetivo", keywords: ["objetivo", "resumo", "perfil"] }
+    ];
+
+    let sectionsFound = 0;
+    sections.forEach(s => {
+        if (s.keywords.some(k => lowerText.includes(k))) {
+            sectionsFound++;
+        } else {
+            report.improvements.push(`Seção de ${s.name} não identificada claramente.`);
+        }
+    });
+
+    const sectionScore = (sectionsFound / sections.length) * 25;
+    score += sectionScore;
+    if (sectionsFound === sections.length) {
+        report.strengths.push("Estrutura bem definida com todas as seções essenciais.");
+    }
+
+    // 3. Verbos de Ação e Palavras-chave (Peso: 30)
+    const actionVerbs = ["realizei", "desenvolvi", "coordenei", "lideri", "apliquei", "gerenciei", "otimizei", "implementei", "colaborei", "atuei"];
+    const foundVerbs = actionVerbs.filter(v => lowerText.includes(v));
+    if (foundVerbs.length >= 5) {
+        score += 30;
+        report.strengths.push("Bom uso de verbos de ação para descrever experiências.");
+    } else if (foundVerbs.length > 0) {
+        score += 15;
+        report.improvements.push("Pode usar mais verbos de ação para destacar conquistas.");
+        report.suggestions.push("Use palavras como 'gerenciei', 'desenvolvi' ou 'otimizei' em vez de apenas 'fiz'.");
+    } else {
+        report.improvements.push("Faltam termos de impacto nas descrições.");
+    }
+
+    // 4. Volume e Detalhamento (Peso: 30)
+    const wordCount = text.split(/\s+/).length;
+    if (wordCount > 300) {
+        score += 30;
+        report.strengths.push("Conteúdo detalhado e informativo.");
+    } else if (wordCount > 150) {
+        score += 15;
+        report.improvements.push("O currículo está um pouco curto.");
+        report.suggestions.push("Tente detalhar mais suas responsabilidades e resultados alcançados.");
+    } else {
+        report.improvements.push("Conteúdo muito escasso para uma análise profunda.");
+    }
+
+    report.score = Math.min(Math.round(score), 100);
+
+    // Fallback se não houver pontos positivos
+    if (report.strengths.length === 0) {
+        report.strengths.push("Formato de arquivo compatível para leitura.");
+    }
+
+    return report;
 }
 
 // Helper para calcular tamanho da fonte do nome
@@ -746,6 +833,63 @@ app.post('/api/generate-cv', upload.single('photo'), async (req, res) => {
             error: 'Erro Interno',
             message: 'Ocorreu um erro ao processar seu currículo. Tente novamente sem foto ou escolha outro modelo.'
         });
+    }
+});
+
+// Análise ATS de Arquivo (Upload)
+app.post('/api/ats-analyze-file', upload.single('resume'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+        }
+
+        let text = '';
+        const mimeType = req.file.mimetype;
+
+        if (mimeType === 'application/pdf') {
+            const data = await pdfParse(req.file.buffer);
+            text = data.text;
+        } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            const data = await mammoth.extractRawText({ buffer: req.file.buffer });
+            text = data.value;
+        } else {
+            return res.status(400).json({ error: 'Formato de arquivo não suportado. Use PDF ou DOCX.' });
+        }
+
+        const report = analyzeATS(text);
+        res.json(report);
+    } catch (error) {
+        console.error('Erro na análise ATS de arquivo:', error);
+        res.status(500).json({ error: 'Erro ao processar o arquivo para análise.' });
+    }
+});
+
+// Análise ATS de Dados (JSON)
+app.post('/api/ats-analyze-data', (req, res) => {
+    try {
+        const { data } = req.body;
+        if (!data) {
+            return res.status(400).json({ error: 'Dados não fornecidos' });
+        }
+
+        // Concatena campos para análise de texto
+        const text = `
+            ${data.nome} ${data.cargo}
+            ${data.objetivo || ''}
+            ${data.experiencia}
+            ${data.formacao}
+            ${data.habilidades}
+            ${data.cursos || ''}
+            ${data.empresa1 || ''} ${data.funcao1 || ''}
+            ${data.empresa2 || ''} ${data.funcao2 || ''}
+            ${data.empresa3 || ''} ${data.funcao3 || ''}
+        `;
+
+        const report = analyzeATS(text, data);
+        res.json(report);
+    } catch (error) {
+        console.error('Erro na análise ATS de dados:', error);
+        res.status(500).json({ error: 'Erro ao realizar análise.' });
     }
 });
 
