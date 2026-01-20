@@ -83,15 +83,8 @@ const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: config.UPLOAD.MAX_FILE_SIZE,
+        fileSize: 10 * 1024 * 1024, // Limite global de 10MB para segurança (validado especificamente por rota)
         files: 1
-    },
-    fileFilter: (req, file, cb) => {
-        const validationResult = validation.validateFileUpload(file);
-        if (!validationResult.valid) {
-            return cb(new Error(validationResult.error), false);
-        }
-        cb(null, true);
     }
 });
 
@@ -762,11 +755,18 @@ app.post('/api/generate-cv', upload.single('photo'), async (req, res) => {
         // 3. Processamento de Foto (Fail-safe)
         let photoData = null;
         if (req.file) {
-            try {
-                photoData = await processPhoto(req.file.buffer);
-            } catch (photoError) {
-                console.error(`[${requestId}] Erro ao processar foto:`, photoError);
-                // Não falha a requisição, apenas loga e segue sem foto
+            // Validação explícita de foto
+            const photoValidation = validation.validateFileUpload(req.file, 'photo');
+            if (!photoValidation.valid) {
+                console.warn(`[${requestId}] Foto ignorada: ${photoValidation.error}`);
+                // Não falha a geração do CV, apenas ignora a foto inválida
+            } else {
+                try {
+                    photoData = await processPhoto(req.file.buffer);
+                } catch (photoError) {
+                    console.error(`[${requestId}] Erro ao processar foto:`, photoError);
+                    // Não falha a requisição, apenas loga e segue sem foto
+                }
             }
         }
 
@@ -1616,18 +1616,22 @@ app.get('/termos', (req, res) => {
 
 // Middleware de tratamento de erros melhorado
 app.use((error, req, res, next) => {
-    logger.error('Erro capturado:', {
-        message: error.message,
-        stack: error.stack,
-        url: req.url,
-        method: req.method,
-        ip: req.ip
-    });
+    // Logging seguro
+    try {
+        logger.error('Erro capturado:', {
+            message: error.message,
+            stack: error.stack,
+            url: req.url,
+            method: req.method
+        });
+    } catch (logError) {
+        console.error('Falha ao logar erro:', logError);
+    }
 
     if (error instanceof multer.MulterError) {
         switch (error.code) {
             case 'LIMIT_FILE_SIZE':
-                return res.status(400).json({ error: 'Arquivo muito grande. Máximo 2MB.' });
+                return res.status(400).json({ error: 'Arquivo muito grande. Máximo 10MB.' });
             case 'LIMIT_FILE_COUNT':
                 return res.status(400).json({ error: 'Muitos arquivos enviados.' });
             case 'LIMIT_UNEXPECTED_FILE':

@@ -1003,12 +1003,27 @@ async function handleATSAnalyzeFile(event) {
             body: formData
         });
 
+        const rawText = await response.text();
+        let report;
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || errorData.error || 'Falha na análise');
+            let errorMessage = 'Falha na análise';
+            try {
+                const errorData = JSON.parse(rawText);
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = rawText.substring(0, 200) || errorMessage;
+            }
+            throw new Error(errorMessage);
         }
 
-        const report = await response.json();
+        try {
+            report = JSON.parse(rawText);
+        } catch (e) {
+            console.error('Erro ao processar resposta do servidor:', rawText);
+            throw new Error('O servidor retornou uma resposta inválida. Tente novamente.');
+        }
+
         displayATSReport(report);
         trackEvent('ats_analyze_file_success', { score: report.score });
     } catch (error) {
