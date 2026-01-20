@@ -838,67 +838,86 @@ app.post('/api/generate-cv', upload.single('photo'), async (req, res) => {
 });
 
 // Análise ATS de Arquivo (Upload)
+// Análise ATS de Arquivo (Upload)
 app.post('/api/ats-analyze-file', upload.single('resume'), async (req, res) => {
     const requestId = Date.now().toString(36);
+    console.log(`[${requestId}] 🚀 Iniciando análise ATS de arquivo`);
+
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Nenhum arquivo enviado' });
         }
 
-        // 1. Validação Robusta (Tamanho e MIME Type)
-        const validationResult = validation.validateFileUpload(req.file, 'resume');
-        if (!validationResult.valid) {
-            return res.status(400).json({ error: validationResult.error });
+        // 1. Validação de Tamanho (Multer já limita, mas reforçamos)
+        if (req.file.size > config.UPLOAD.RESUME.MAX_FILE_SIZE) {
+            return res.status(400).json({ error: 'Arquivo excede o tamanho máximo permitido.' });
         }
 
-        // 2. Verificação de tipo real por Buffer (Segurança extra)
-        const typeInfo = await fileType.fromBuffer(req.file.buffer);
-        const allowedMimeTypes = config.UPLOAD.RESUME.ALLOWED_TYPES;
+        // 2. Validação REAL de Tipo (Content-Based)
+        // Não confiamos no req.file.mimetype vindo do cliente
+        let typeInfo = await fileType.fromBuffer(req.file.buffer);
+        let mimeType = typeInfo ? typeInfo.mime : '';
+        let ext = typeInfo ? typeInfo.ext : '';
 
-        if (!typeInfo || !allowedMimeTypes.includes(typeInfo.mime)) {
-            // Fallback para aceitar se o multer identificou mas o file-type falhou (comum em DOCX)
-            if (!allowedMimeTypes.includes(req.file.mimetype)) {
-                return res.status(400).json({ error: 'O conteúdo do arquivo não corresponde a um PDF ou DOCX válido.' });
-            }
-        }
+        console.log(`[${requestId}] FileType detectado: ${mimeType} (${ext})`);
 
         let text = '';
-        const mimeType = typeInfo ? typeInfo.mime : req.file.mimetype;
+        let parsingMethod = '';
 
-        // 3. Parsing de Conteúdo
+        // Tenta detectar se é DOCX (muitas vezes detectado como ZIP)
+        const isZip = mimeType === 'application/zip';
+        const isDocx = mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        const isPdf = mimeType === 'application/pdf';
+
         try {
-            if (mimeType === 'application/pdf') {
+            if (isPdf) {
+                // É PDF, tenta ler
+                parsingMethod = 'PDF-PARSE';
                 const data = await pdfParse(req.file.buffer);
                 text = data.text;
-            } else {
-                // DOCX
+            } else if (isDocx || isZip || !mimeType) {
+                // Pode ser DOCX (que é um ZIP) ou arquivo sem assinatura clara (tenta como docx via mammoth)
+                // Mammoth lança erro se não for docx válido
+                parsingMethod = 'MAMMOTH';
                 const data = await mammoth.extractRawText({ buffer: req.file.buffer });
                 text = data.value;
+
+                // Se mammoth funcionou, confirmamos que é um DOCX válido
+                if (!text && !data.messages) {
+                    // Se não extraiu nada e não deu erro, suspeito. Mas deixamos passar para validação de conteúdo.
+                }
+            } else {
+                return res.status(400).json({
+                    error: 'Formato de arquivo não suportado.',
+                    details: 'Apenas arquivos PDF (.pdf) e Word (.docx) legítimos são aceitos.'
+                });
             }
         } catch (parseError) {
-            console.error(`[${requestId}] Erro no parsing:`, parseError);
+            console.error(`[${requestId}] Erro no parsing (${parsingMethod}):`, parseError.message);
             return res.status(422).json({
-                error: 'Erro de leitura',
-                message: 'Não foi possível ler o conteúdo do arquivo. Verifique se o arquivo não está protegido por senha ou corrompido.'
+                error: 'Arquivo corrompido ou inválido',
+                message: 'O sistema não conseguiu ler o conteúdo deste arquivo. Verifique se é um PDF ou DOCX válido e não está protegido por senha.'
             });
         }
 
-        // 4. Tratamento de Arquivos "Vazios" (Scanners/Imagens)
+        // 4. Validação de Conteúdo (Texto Suficiente)
+        // Isso bloqueia imagens escaneadas salvas como PDF
         const cleanText = text.replace(/\s+/g, ' ').trim();
         if (cleanText.length < 50) {
             return res.status(422).json({
-                error: 'Conteúdo insuficiente',
-                message: 'O arquivo parece estar vazio ou é uma imagem (digitalizado por scanner). Para uma análise ATS, o arquivo deve conter texto selecionável.'
+                error: 'Conteúdo ilegível',
+                message: 'O arquivo parece ser uma imagem digitalizada ou está vazio. O ATS precisa de texto selecionável para fazer a leitura.'
             });
         }
 
         const report = analyzeATS(text);
         res.json(report);
+
     } catch (error) {
-        console.error(`[${requestId}] Erro na análise ATS de arquivo:`, error);
+        console.error(`[${requestId}] Erro fatal na rota ATS:`, error);
         res.status(500).json({
             error: 'Erro interno',
-            message: 'Ocorreu um erro inesperado ao processar sua análise. Tente novamente em instantes.'
+            message: 'Ocorreu um erro inesperado ao processar sua análise.'
         });
     }
 });
