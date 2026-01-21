@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "index.js",
       "use": "@vercel/node"
     },
     {
@@ -13,31 +13,31 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/sobre",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/contato",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/dicas",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/cv/(.*)",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/privacidade",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/termos",
-      "dest": "/server.js"
+      "dest": "/index.js"
     },
     {
       "src": "/css/(.*)",
