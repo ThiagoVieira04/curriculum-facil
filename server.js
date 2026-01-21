@@ -16,32 +16,12 @@ const fileType = require('file-type');
 const config = require('./config');
 const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
 
-// Rotas extras com validação de carregamento
-let sobreRoute, contatoRoute, dicasRoute;
+// Rotas estáticas (Require explícito para garantir bundling na Vercel)
+const sobreRoute = require('./sobre-route');
+const contatoRoute = require('./contato-route');
+const dicasRoute = require('./dicas-route');
 
-try {
-    sobreRoute = require('./sobre-route');
-    console.log('✅ Rota /sobre carregada com sucesso');
-} catch (error) {
-    console.error('❌ Erro ao carregar sobre-route.js:', error.message);
-    sobreRoute = (req, res) => res.status(500).json({ error: 'Rota /sobre indisponível' });
-}
-
-try {
-    contatoRoute = require('./contato-route');
-    console.log('✅ Rota /contato carregada com sucesso');
-} catch (error) {
-    console.error('❌ Erro ao carregar contato-route.js:', error.message);
-    contatoRoute = (req, res) => res.status(500).json({ error: 'Rota /contato indisponível' });
-}
-
-try {
-    dicasRoute = require('./dicas-route');
-    console.log('✅ Rota /dicas carregada com sucesso');
-} catch (error) {
-    console.error('❌ Erro ao carregar dicas-route.js:', error.message);
-    dicasRoute = (req, res) => res.status(500).json({ error: 'Rota /dicas indisponível' });
-}
+console.log('✅ Rotas auxiliares carregadas');
 
 const app = express();
 const PORT = config.PORT;

@@ -3,7 +3,9 @@ const router = express.Router();
 
 // Página de Contato
 router.get('/', (req, res) => {
-    res.send(`
+    try {
+        console.log('Acessando rota /contato');
+        res.send(`
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
@@ -158,6 +160,10 @@ router.get('/', (req, res) => {
         </body>
         </html>
     `);
+    } catch (error) {
+        console.error('Erro ao renderizar página Contato:', error);
+        res.status(500).send('Erro ao carregar a página.');
+    }
 });
 
 module.exports = router;

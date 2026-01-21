@@ -3,7 +3,9 @@ const router = express.Router();
 
 // Página Sobre
 router.get('/', (req, res) => {
-    res.send(`
+    try {
+        console.log('Acessando rota /sobre');
+        res.send(`
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
@@ -60,6 +62,10 @@ router.get('/', (req, res) => {
         </body>
         </html>
     `);
+    } catch (error) {
+        console.error('Erro ao renderizar página Sobre:', error);
+        res.status(500).send('Erro ao carregar a página.');
+    }
 });
 
 module.exports = router;
