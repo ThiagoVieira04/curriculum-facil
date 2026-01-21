@@ -15,10 +15,32 @@ const fileType = require('file-type');
 const config = require('./config');
 const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
 
-// Rotas extras
-const sobreRoute = require('./sobre-route');
-const contatoRoute = require('./contato-route');
-const dicasRoute = require('./dicas-route');
+// Rotas extras com validação de carregamento
+let sobreRoute, contatoRoute, dicasRoute;
+
+try {
+    sobreRoute = require('./sobre-route');
+    console.log('✅ Rota /sobre carregada com sucesso');
+} catch (error) {
+    console.error('❌ Erro ao carregar sobre-route.js:', error.message);
+    sobreRoute = (req, res) => res.status(500).json({ error: 'Rota /sobre indisponível' });
+}
+
+try {
+    contatoRoute = require('./contato-route');
+    console.log('✅ Rota /contato carregada com sucesso');
+} catch (error) {
+    console.error('❌ Erro ao carregar contato-route.js:', error.message);
+    contatoRoute = (req, res) => res.status(500).json({ error: 'Rota /contato indisponível' });
+}
+
+try {
+    dicasRoute = require('./dicas-route');
+    console.log('✅ Rota /dicas carregada com sucesso');
+} catch (error) {
+    console.error('❌ Erro ao carregar dicas-route.js:', error.message);
+    dicasRoute = (req, res) => res.status(500).json({ error: 'Rota /dicas indisponível' });
+}
 
 const app = express();
 const PORT = config.PORT;
@@ -69,6 +91,21 @@ app.get('/api/debug-env', (req, res) => {
         node_version: process.version,
         memory: process.memoryUsage(),
         uptime: process.uptime()
+    });
+});
+
+// Health check para Vercel
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Rota raiz para verificar se servidor está rodando
+app.get('/api/status', (req, res) => {
+    res.json({
+        status: 'running',
+        environment: process.env.NODE_ENV || 'development',
+        vercel: !!process.env.VERCEL,
+        timestamp: new Date().toISOString()
     });
 });
 
