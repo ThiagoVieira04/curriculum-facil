@@ -19,7 +19,8 @@
     "helmet": "^7.0.0",
     "mammoth": "^1.11.0",
     "multer": "^2.0.2",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "rate-limiter-flexible": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
