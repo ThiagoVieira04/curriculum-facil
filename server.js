@@ -94,6 +94,14 @@ app.get('/sobre', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'sobre.html'));
 });
 
+app.get('/contato', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'contato.html'));
+});
+
+app.get('/dicas', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dicas.html'));
+});
+
 // Servir arquivos estáticos DEPOIS das rotas dinâmicas
 app.use(express.static('public'));
 
