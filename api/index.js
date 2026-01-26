@@ -48,19 +48,19 @@ app.get('/api/health', (req, res) => {
 // STATIC PAGES
 // ============================================
 app.get('/sobre', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'sobre.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'sobre.html'));
 });
 
 app.get('/contato', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'contato.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'contato.html'));
 });
 
 app.get('/dicas', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dicas.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'dicas.html'));
 });
 
 app.get('/empresa', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'empresa.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'empresa.html'));
 });
 
 // ============================================
@@ -149,8 +149,11 @@ app.post('/api/generate-cv', upload.single('photo'), async (req, res) => {
             message: 'Currículo gerado com sucesso!'
         });
     } catch (error) {
-        console.error('Erro ao gerar CV:', error);
-        res.status(500).json({ error: 'Erro ao processar' });
+        console.error('CRITICAL ERROR on /api/generate-cv:', error.stack || error);
+        res.status(500).json({
+            error: 'Erro interno do servidor ao gerar currículo',
+            message: error.message
+        });
     }
 });
 
@@ -187,25 +190,25 @@ app.get('/cv/:id', (req, res) => {
             </html>
         `);
     } catch (error) {
-        console.error('Erro ao visualizar CV:', error);
-        res.status(500).send('Erro interno');
+        console.error('CRITICAL ERROR on /cv/:id:', error.stack || error);
+        res.status(500).send('Erro interno ao carregar currículo');
     }
 });
 
 // ============================================
 // STATIC FILES
 // ============================================
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // ============================================
 // CATCH-ALL
 // ============================================
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 // ============================================
