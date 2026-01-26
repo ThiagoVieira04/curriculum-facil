@@ -63,6 +63,14 @@ app.get('/empresa', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'public', 'empresa.html'));
 });
 
+app.get('/privacidade', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'privacidade.html'));
+});
+
+app.get('/termos', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'termos.html'));
+});
+
 // ============================================
 // DATABASE (IN-MEMORY)
 // ============================================
