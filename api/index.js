@@ -111,6 +111,59 @@ const templates = {
 };
 
 // ============================================
+// ATS ANALYSIS HEURISTICS
+// ============================================
+const performATSAnalysis = (text = '') => {
+    const rawText = text.toLowerCase();
+    let score = 65;
+    const strengths = [];
+    const improvements = [];
+    const suggestions = [];
+
+    // Heuristics
+    if (rawText.length > 500) {
+        score += 10;
+        strengths.push('Boa densidade de conteúdo');
+    } else {
+        score -= 10;
+        improvements.push('Conteúdo muito conciso');
+        suggestions.push('Adicione mais detalhes sobre suas responsabilidades passadas');
+    }
+
+    if (rawText.includes('objetivo')) {
+        score += 5;
+        strengths.push('Inclui seção de objetivo');
+    } else {
+        improvements.push('Falta um objetivo claro');
+        suggestions.push('Defina seu objetivo profissional no início do currículo');
+    }
+
+    if (rawText.includes('experiência') || rawText.includes('trabalho')) {
+        score += 10;
+        strengths.push('Experiência profissional identificada');
+    } else {
+        improvements.push('Falta detalhamento de experiências');
+    }
+
+    const keywords = ['gerenciamento', 'desenvolvimento', 'análise', 'coordenação', 'projetos', 'resultados'];
+    const foundKeywords = keywords.filter(k => rawText.includes(k));
+    if (foundKeywords.length >= 2) {
+        score += 10;
+        strengths.push('Uso de palavras-chave estratégicas');
+    } else {
+        suggestions.push('Utilize verbos de ação e termos técnicos da sua área');
+    }
+
+    return {
+        score: Math.min(Math.max(score, 0), 100),
+        strengths,
+        improvements,
+        suggestions: [...suggestions, 'Mantenha o layout limpo e use fontes padrão'],
+        timestamp: new Date().toISOString()
+    };
+};
+
+// ============================================
 // GERAR CV
 // ============================================
 app.post('/api/generate-cv', upload.single('photo'), async (req, res) => {
@@ -200,6 +253,72 @@ app.get('/cv/:id', (req, res) => {
     } catch (error) {
         console.error('CRITICAL ERROR on /cv/:id:', error.stack || error);
         res.status(500).send('Erro interno ao carregar currículo');
+    }
+});
+
+// ============================================
+// ATS ENDPOINTS
+// ============================================
+app.post('/api/ats-analyze-file', upload.single('resume'), (req, res) => {
+    try {
+        // Simulação de leitura de arquivo (como é mock, analisamos metadados ou conteúdo fictício)
+        // Em um sistema real, usaríamos pdf-parse aqui
+        const report = performATSAnalysis(req.file?.originalname || '');
+        res.json(report);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao analisar arquivo' });
+    }
+});
+
+app.post('/api/ats-analyze-data', (req, res) => {
+    try {
+        const { data } = req.body;
+        const textToAnalyze = Object.values(data || {}).join(' ');
+        const report = performATSAnalysis(textToAnalyze);
+        res.json(report);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao analisar dados' });
+    }
+});
+
+// ============================================
+// PDF DOWNLOAD
+// ============================================
+app.post('/api/download-pdf/:id', (req, res) => {
+    try {
+        const { html, nome } = req.body;
+
+        // Em um ambiente Vercel, a geração real de PDF (Puppeteer) é pesada.
+        // Como solução profissional intermediária, retornamos o HTML com headers de download.
+        // O navegador tratará como um arquivo que o usuário pode "Salvar como PDF" ao imprimir.
+
+        const fileName = (nome || 'curriculo').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
+
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { margin: 0; padding: 0; }
+                    @media print {
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="background: #1e293b; color: white; padding: 15px; text-align: center; font-family: sans-serif;">
+                    Pressione <strong>Ctrl + P</strong> (ou Cmd + P) e selecione <strong>"Salvar como PDF"</strong> para baixar o documento final.
+                </div>
+                ${html}
+            </body>
+            </html>
+        `);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao preparar download' });
     }
 });
 

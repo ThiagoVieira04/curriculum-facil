@@ -4,8 +4,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contato - CurrículoFácil</title>
+    <title>Contato - Papel e Sonhos Informática</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 120px 20px 60px;
+            text-align: center;
+        }
+
+        .contact-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 60px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .contact-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: #2563eb;
+        }
+
+        .contact-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-card h3 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-contact {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+
+        .btn-email {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin: 40px 0;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .contact-hero {
+                padding: 100px 20px 40px;
+            }
+
+            .contact-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -25,18 +133,41 @@
         </nav>
     </header>
 
-    <main style="padding-top: 100px;">
-        <div class="container" style="padding: 50px 20px;">
-            <h1>Contato</h1>
-            <p>Email: <a href="mailto:tsmv04@hotmail.com">tsmv04@hotmail.com</a></p>
-            <p><a href="/">← Voltar ao início</a></p>
+    <main>
+        <section class="contact-hero">
+            <div class="container">
+                <h1>Fale Conosco</h1>
+                <p>Estamos prontos para transformar sua ideia em realidade. Escolha o canal de sua preferência.</p>
+            </div>
+        </section>
+
+        <section class="contact-grid">
+            <!-- WhatsApp -->
+            <a href="https://wa.me/5521987172463" target="_blank" class="contact-card">
+                <div class="contact-icon">💬</div>
+                <h3>WhatsApp</h3>
+                <p>Atendimento rápido e direto para orçamentos e dúvidas.</p>
+                <div class="btn-contact btn-whatsapp">Conversar Agora</div>
+            </a>
+
+            <!-- E-mail -->
+            <a href="mailto:tsmv04@hotmail.com" class="contact-card">
+                <div class="contact-icon">✉️</div>
+                <h3>E-mail</h3>
+                <p>Envie sua mensagem ou documentos para análise detalhada.</p>
+                <div class="btn-contact btn-email">Enviar E-mail</div>
+            </a>
+        </section>
+
+        <div class="container">
+            <a href="/" class="back-link">← Voltar para a Página Inicial</a>
         </div>
     </main>
+
     <footer>
         <div class="container">
             <p style="font-size: 0.95rem; opacity: 0.9;">Papel e Sonhos Informática - Desde 28 de setembro de 2012,
-                qualidade e inovação ao seu
-                serviço.</p>
+                qualidade e inovação ao seu serviço.</p>
             <div class="footer-links">
                 <a href="/sobre">Sobre</a>
                 <a href="/contato">Contato</a>
