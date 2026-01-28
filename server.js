@@ -169,6 +169,17 @@ const upload = multer({
 // Banco de dados em memória (para simplicidade)
 const cvDatabase = new Map();
 
+// Helper para formatar data (AAAA-MM-DD para DD/MM/AAAA)
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    if (dateStr.includes('/')) return dateStr; // Já está formatado
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+};
+
 // Limpeza automática otimizada
 setInterval(() => {
     const cleaned = cleanup.cleanupOldCVs(cvDatabase);
@@ -343,7 +354,7 @@ const templates = {
                     </p>
                     ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
                         <p style="margin: 5px 0; color: #666; font-size: 12px;">
-                            ${data.nascimento ? `${data.nascimento}` : ''}
+                            ${data.nascimento ? `${formatDate(data.nascimento)}` : ''}
                             ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
                             ${data.naturalidade ? ` | ${data.naturalidade}` : ''}
                             ${data.nacionalidade ? ` | ${data.nacionalidade}` : ''}
@@ -423,7 +434,7 @@ const templates = {
                     </p>
                     ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
                         <p style="margin: 5px 0; font-size: 12px; opacity: 0.8;">
-                            ${data.nascimento ? `${data.nascimento}` : ''}
+                            ${data.nascimento ? `${formatDate(data.nascimento)}` : ''}
                             ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
                             ${data.naturalidade ? ` | ${data.naturalidade}` : ''}
                             ${data.nacionalidade ? ` | ${data.nacionalidade}` : ''}
@@ -510,7 +521,7 @@ const templates = {
                     ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
                         <div style="margin-bottom: 30px;">
                              <h3 style="color: #ecf0f1; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Pessoal</h3>
-                             <p style="font-size: 13px; margin: 5px 0; color: #bdc3c7;">${data.nascimento ? `${data.nascimento}<br>` : ''}
+                             <p style="font-size: 13px; margin: 5px 0; color: #bdc3c7;">${data.nascimento ? `${formatDate(data.nascimento)}<br>` : ''}
                              ${data.estadoCivil ? `${data.estadoCivil}<br>` : ''}
                              ${data.naturalidade ? `${data.naturalidade}<br>` : ''}
                              ${data.nacionalidade ? `${data.nacionalidade}` : ''}</p>
@@ -622,7 +633,7 @@ const templates = {
                     </p>
                     ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
                         <p style="margin: 5px 0; color: white; font-size: 12px; opacity: 0.6;">
-                            ${data.nascimento ? `${data.nascimento}` : ''}
+                            ${data.nascimento ? `${formatDate(data.nascimento)}` : ''}
                             ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
                             ${data.naturalidade ? ` | ${data.naturalidade}` : ''}
                             ${data.nacionalidade ? ` | ${data.nacionalidade}` : ''}
@@ -704,7 +715,7 @@ const templates = {
                     </p>
                     ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
                         <p style="margin: 5px 0; color: #7f8c8d; font-size: 12px;">
-                            ${data.nascimento ? `${data.nascimento}` : ''}
+                            ${data.nascimento ? `${formatDate(data.nascimento)}` : ''}
                             ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
                             ${data.naturalidade ? ` | ${data.naturalidade}` : ''}
                             ${data.nacionalidade ? ` | ${data.nacionalidade}` : ''}
