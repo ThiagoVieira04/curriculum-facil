@@ -47,28 +47,30 @@ app.get('/api/health', (req, res) => {
 // ============================================
 // STATIC PAGES
 // ============================================
+const publicPath = path.join(process.cwd(), 'public');
+
 app.get('/sobre', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'sobre.html'));
+    res.sendFile(path.join(publicPath, 'sobre.html'));
 });
 
 app.get('/contato', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'contato.html'));
+    res.sendFile(path.join(publicPath, 'contato.html'));
 });
 
 app.get('/dicas', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'dicas.html'));
+    res.sendFile(path.join(publicPath, 'dicas.html'));
 });
 
 app.get('/empresa', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'empresa.html'));
+    res.sendFile(path.join(publicPath, 'empresa.html'));
 });
 
 app.get('/privacidade', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'privacidade.html'));
+    res.sendFile(path.join(publicPath, 'privacidade.html'));
 });
 
 app.get('/termos', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'termos.html'));
+    res.sendFile(path.join(publicPath, 'termos.html'));
 });
 
 // ============================================
@@ -790,19 +792,20 @@ app.post('/api/download-pdf/:id', (req, res) => {
 // ============================================
 // STATIC FILES
 // ============================================
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // ============================================
 // CATCH-ALL
 // ============================================
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 // Fallback para qualquer rota não encontrada (SPA Behavior)
 app.get('*', (req, res) => {
     // Tenta servir o index.html como último recurso
-    res.sendFile(path.join(__dirname, '../public', 'index.html'), (err) => {
+    const indexPath = path.join(process.cwd(), 'public', 'index.html');
+    res.sendFile(indexPath, (err) => {
         if (err) {
             console.error('Erro ao servir index.html no fallback:', err);
             res.status(500).send('Erro crítico: Falha ao carregar a aplicação.');
