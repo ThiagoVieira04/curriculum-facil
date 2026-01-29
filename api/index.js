@@ -799,8 +799,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+// Fallback para qualquer rota não encontrada (SPA Behavior)
+app.get('*', (req, res) => {
+    // Tenta servir o index.html como último recurso
+    res.sendFile(path.join(__dirname, '../public', 'index.html'), (err) => {
+        if (err) {
+            console.error('Erro ao servir index.html no fallback:', err);
+            res.status(500).send('Erro crítico: Falha ao carregar a aplicação.');
+        }
+    });
 });
 
 // ============================================
