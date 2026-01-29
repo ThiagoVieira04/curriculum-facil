@@ -2,7 +2,6 @@
   "name": "gerador-curriculos",
   "version": "1.0.3",
   "description": "Gerador automático de currículos gratuito",
-  "main": "api/index.js",
   "scripts": {
     "build": "echo 'No build step'",
     "start": "node api/index.js",
