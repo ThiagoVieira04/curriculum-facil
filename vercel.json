@@ -1,16 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "runtime": "nodejs22.x",
-        "maxDuration": 60,
-        "memory": 1024
-      }
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -19,6 +8,9 @@
     {
       "src": "/cv/(.*)",
       "dest": "/api/index.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

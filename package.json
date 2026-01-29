@@ -4,7 +4,7 @@
   "description": "Gerador automático de currículos gratuito",
   "main": "api/index.js",
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   },
   "scripts": {
     "start": "node api/index.js",
