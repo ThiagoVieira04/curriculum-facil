@@ -19,6 +19,9 @@ const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
 const app = express();
 const PORT = config.PORT;
 
+// Banco de dados em memória (para simplicidade)
+const cvDatabase = new Map();
+
 // Rate limiting DESABILITADO para desenvolvimento
 const rateLimitMap = new Map();
 
@@ -52,6 +55,9 @@ app.use(cors(config.SECURITY.CORS_OPTIONS));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.set('trust proxy', true);
+
+// Ativar Rate Limiting
+app.use(rateLimit);
 
 // IMPORTANTE: Rotas dinâmicas ANTES de express.static
 // Isso garante que /sobre, /contato, /api/* sejam processadas antes de procurar arquivos estáticos
@@ -99,6 +105,10 @@ app.get('/dicas', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dicas.html'));
 });
 
+app.get('/empresa', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'empresa.html'));
+});
+
 // Rota para compartilhar/visualizar currículo
 app.get('/cv/:id', (req, res) => {
     const { id } = req.params;
@@ -139,6 +149,7 @@ app.get('/cv/:id', (req, res) => {
                         <h1>Currículo de ${validation.sanitizeText(cv.nome)}</h1>
                         <div>
                             <a href="/" style="margin-right: 10px;">← Criar novo currículo</a>
+                            <a href="/api/download-pdf/${id}" style="margin-right: 10px;">📥 Baixar PDF</a>
                             <a onclick="window.print()" style="cursor: pointer;">🖨️ Imprimir</a>
                         </div>
                     </header>
@@ -165,9 +176,6 @@ const upload = multer({
         cb(null, true);
     }
 });
-
-// Banco de dados em memória (para simplicidade)
-const cvDatabase = new Map();
 
 // Helper para formatar data (AAAA-MM-DD para DD/MM/AAAA)
 const formatDate = (dateStr) => {
@@ -1105,54 +1113,6 @@ app.all('/api/download-pdf/:id?', async (req, res) => {
     }
 });
 
-// Visualizar currículo compartilhado
-app.get('/cv/:id', async (req, res) => {
-    try {
-        const cvId = req.params.id;
-        const cvData = cvDatabase.get(cvId);
-
-        if (!cvData) {
-            return res.status(404).send('Currículo não encontrado');
-        }
-
-        const sharePageHtml = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currículo - ${cvData.nome}</title>
-    <meta name="description" content="Currículo profissional de ${cvData.nome} - ${cvData.cargo}">
-    <style>
-        body { margin: 0; padding: 20px; background: #f5f5f5; font-family: Arial, sans-serif; }
-        .container { max-width: 800px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .actions { text-align: center; padding: 20px; background: #333; }
-        .actions a { color: white; text-decoration: none; margin: 0 10px; padding: 10px 20px; background: #007bff; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="actions">
-            <a href="/api/download-pdf/${cvId}">📥 Baixar PDF</a>
-            <a href="/">🏠 Criar Meu Currículo</a>
-        </div>
-        ${cvData.html}
-    </div>
-</body>
-</html>`;
-
-        res.send(sharePageHtml);
-
-    } catch (error) {
-        console.error('Erro ao exibir currículo:', error);
-        res.status(500).send('Erro interno do servidor');
-    }
-});
-
-
-
-
-
 app.get('/privacidade', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -1247,6 +1207,16 @@ app.get('/termos', (req, res) => {
         </body>
         </html>
     `);
+});
+
+// Fallback para SPA (Single Page Application) - Deve ficar APÓS todas as rotas e ANTES do tratamento de erro
+app.get('*', (req, res, next) => {
+    // Se for rota de API não encontrada, passa para o error handler (404 JSON)
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+    // Para outras rotas, serve o index.html
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Middleware de tratamento de erros melhorado
