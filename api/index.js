@@ -792,26 +792,34 @@ app.post('/api/download-pdf/:id', (req, res) => {
 // ============================================
 // STATIC FILES
 // ============================================
-app.use(express.static(path.join(process.cwd(), 'public')));
-
 // ============================================
-// CATCH-ALL
+// STATIC FILES & CATCH-ALL (DEVELOPMENT ONLY)
 // ============================================
-app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
-});
+// In production, Vercel handles static files. We only need this for local dev.
+if (process.env.NODE_ENV !== 'production') {
+    app.use(express.static(path.join(process.cwd(), 'public')));
 
-// Fallback para qualquer rota não encontrada (SPA Behavior)
-app.get('*', (req, res) => {
-    // Tenta servir o index.html como último recurso
-    const indexPath = path.join(process.cwd(), 'public', 'index.html');
-    res.sendFile(indexPath, (err) => {
-        if (err) {
-            console.error('Erro ao servir index.html no fallback:', err);
-            res.status(500).send('Erro crítico: Falha ao carregar a aplicação.');
-        }
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
     });
-});
+
+    // Fallback para qualquer rota não encontrada (SPA Behavior - Local Dev)
+    app.get('*', (req, res) => {
+        const indexPath = path.join(process.cwd(), 'public', 'index.html');
+        res.sendFile(indexPath, (err) => {
+            if (err) {
+                console.error('Erro ao servir index.html no fallback:', err);
+                res.status(404).send('Not Found');
+            }
+        });
+    });
+} else {
+    // In production, if a request reaches here, it means Vercel didn't find the static file.
+    // We should return 404 so Vercel can show its error page or we can send a custom JSON 404.
+    app.get('*', (req, res) => {
+        res.status(404).json({ error: 'Not Found', message: 'API route not found or static file missing' });
+    });
+}
 
 // ============================================
 // ERROR HANDLER
@@ -822,6 +830,15 @@ app.use((err, req, res, next) => {
 });
 
 // ============================================
-// EXPORT
+// EXPORT & LOCAL START
 // ============================================
 module.exports = app;
+
+// Allow running directly with `node api/index.js`
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`\n🚀 Server running locally on http://localhost:${PORT}`);
+        console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+}
