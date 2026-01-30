@@ -15,6 +15,7 @@ const fileType = require('file-type');
 // Configurações e utilitários
 const config = require('./config');
 const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
+const atsProcessor = require('./ats-processor');
 
 const app = express();
 const PORT = config.PORT;
@@ -964,7 +965,7 @@ app.post('/api/generate-cv', (req, res, next) => {
     }
 });
 
-// Análise ATS de Arquivo (Upload) - VERSÃO MELHORADA
+// Análise ATS de Arquivo (Upload) - VERSÃO ROBUSTA COM OCR AUTOMÁTICO
 app.post('/api/ats-analyze-file', (req, res, next) => {
     upload.single('resume')(req, res, (err) => {
         if (err instanceof multer.MulterError) {
@@ -978,90 +979,102 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
     });
 }, async (req, res) => {
     const requestId = Date.now().toString(36);
-    console.log(`[${requestId}] 🚀 Iniciando análise ATS de arquivo`);
+    console.log(`\n[${requestId}] 🚀 ========== INICIANDO ANÁLISE ATS DE ARQUIVO ==========`);
 
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+            return res.status(400).json({ 
+                error: 'Arquivo não encontrado',
+                message: 'Nenhum arquivo foi enviado. Verifique se o upload foi completado.' 
+            });
         }
 
         // 1. Validação de Tamanho
+        if (req.file.size === 0) {
+            return res.status(400).json({
+                error: 'Arquivo vazio',
+                message: 'O arquivo enviado está vazio. Tente novamente com um arquivo válido.'
+            });
+        }
+
         if (req.file.size > config.UPLOAD.RESUME.MAX_FILE_SIZE) {
-            return res.status(400).json({ error: 'Arquivo excede o tamanho máximo permitido.' });
+            return res.status(413).json({
+                error: 'Arquivo muito grande',
+                message: `Arquivo excede o tamanho máximo permitido (${config.UPLOAD.RESUME.MAX_FILE_SIZE / 1024 / 1024}MB).`
+            });
         }
 
-        // 2. Detecção de Tipo com Fallback
+        console.log(`[${requestId}] 📁 Arquivo recebido: ${req.file.originalname} (${req.file.size} bytes)`);
+
+        // 2. Detectar tipo MIME
         let typeInfo = await fileType.fromBuffer(req.file.buffer);
-        let mimeType = typeInfo ? typeInfo.mime : '';
-        let ext = typeInfo ? typeInfo.ext : '';
+        let mimeType = typeInfo ? typeInfo.mime : req.file.mimetype || 'application/octet-stream';
+        
+        console.log(`[${requestId}] 🔍 Tipo detectado: ${mimeType}`);
 
-        console.log(`[${requestId}] FileType detectado: ${mimeType} (${ext})`);
+        // 3. Processar currículo com ATS Processor (suporta OCR automático)
+        console.log(`[${requestId}] ⚙️ Processando documento...`);
+        const processingResult = await atsProcessor.processResume(req.file.buffer, mimeType);
 
-        let text = '';
-        let parsingMethod = '';
-        let parseError = null;
+        // 4. Validar resultado da extração
+        if (!processingResult.text || processingResult.text.length < 50) {
+            console.error(`[${requestId}] ❌ Texto extraído insuficiente: ${processingResult.text?.length || 0} caracteres`);
+            console.log(`[${requestId}] 📊 Detalhes:`, processingResult.details);
 
-        // Estratégia: Tentar PDF primeiro, depois DOCX
-        const isPdf = mimeType === 'application/pdf';
-        const isDocx = mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        const isZip = mimeType === 'application/zip';
-        const isUnknown = !mimeType;
+            // Mensagem de erro diferenciada
+            const errorType = processingResult.details.error;
+            let errorMessage = '';
 
-        // Tentar PDF
-        if (isPdf) {
-            try {
-                parsingMethod = 'PDF-PARSE';
-                const data = await pdfParse(req.file.buffer);
-                text = data.text;
-                console.log(`[${requestId}] PDF parseado com sucesso: ${text.length} caracteres`);
-            } catch (e) {
-                console.warn(`[${requestId}] Falha ao parsear como PDF:`, e.message);
-                parseError = e;
-                // Tenta DOCX como fallback
-                text = '';
+            if (errorType === 'Buffer vazio') {
+                errorMessage = 'O arquivo parece estar corrompido. Tente fazer upload novamente.';
+            } else if (processingResult.details.isScanned === true && !processingResult.isOCR) {
+                errorMessage = 'PDF escaneado detectado mas OCR falhou. O arquivo pode ter imagem de baixa qualidade.';
+            } else if (processingResult.isOCR && processingResult.confidence < 0.5) {
+                errorMessage = `OCR aplicado com baixa confiança (${(processingResult.confidence * 100).toFixed(0)}%). Tente com uma imagem/PDF de melhor qualidade.`;
+            } else if (processingResult.details.error) {
+                errorMessage = `Erro ao processar: ${processingResult.details.error}. Tente com outro arquivo.`;
+            } else {
+                errorMessage = 'Conteúdo insuficiente ou ilegível. Verifique se o arquivo contém texto legível.';
             }
-        }
 
-        // Se PDF falhou ou não era PDF, tentar DOCX
-        if (!text && (isDocx || isZip || isUnknown)) {
-            try {
-                parsingMethod = 'MAMMOTH';
-                const data = await mammoth.extractRawText({ buffer: req.file.buffer });
-                text = data.value || '';
-                console.log(`[${requestId}] DOCX parseado com sucesso: ${text.length} caracteres`);
-            } catch (e) {
-                console.warn(`[${requestId}] Falha ao parsear como DOCX:`, e.message);
-                parseError = e;
-            }
-        }
-
-        // Se ambos falharam
-        if (!text) {
-            console.error(`[${requestId}] Nenhum parser funcionou. Tipo: ${mimeType}, Erro: ${parseError?.message}`);
             return res.status(422).json({
-                error: 'Arquivo corrompido ou inválido',
-                message: 'O sistema não conseguiu ler o conteúdo deste arquivo. Verifique se é um PDF ou DOCX válido, não está protegido por senha e contém texto selecionável.'
+                error: 'Conteúdo não processável',
+                message: errorMessage,
+                debug: {
+                    method: processingResult.method,
+                    textLength: processingResult.text?.length || 0,
+                    isOCR: processingResult.isOCR,
+                    confidence: processingResult.confidence,
+                    details: processingResult.details
+                }
             });
         }
 
-        // 3. Validação de Conteúdo
-        const cleanText = text.replace(/\s+/g, ' ').trim();
-        if (cleanText.length < 50) {
-            return res.status(422).json({
-                error: 'Conteúdo ilegível',
-                message: 'O arquivo parece ser uma imagem digitalizada ou está vazio. O ATS precisa de texto selecionável para fazer a leitura.'
-            });
-        }
+        console.log(`[${requestId}] ✅ Texto extraído com sucesso: ${processingResult.text.length} caracteres`);
+        console.log(`[${requestId}] 📊 Método: ${processingResult.method}, OCR: ${processingResult.isOCR}, Confiança: ${(processingResult.confidence * 100).toFixed(1)}%`);
 
-        // 4. Análise ATS
-        const report = analyzeATS(text);
+        // 5. Realizar análise ATS
+        const report = analyzeATS(processingResult.text);
+
+        // 6. Adicionar metadados do processamento ao relatório
+        report.processingInfo = {
+            method: processingResult.method,
+            isOCR: processingResult.isOCR,
+            isImage: processingResult.isImage,
+            confidence: Math.round(processingResult.confidence * 100),
+            textLength: processingResult.text.length
+        };
+
+        console.log(`[${requestId}] 📋 Análise ATS concluída. Score: ${report.score}`);
+        console.log(`[${requestId}] ========== FIM DA ANÁLISE ==========\n`);
+
         res.json(report);
 
     } catch (error) {
-        console.error(`[${requestId}] Erro fatal na rota ATS:`, error);
+        console.error(`[${requestId}] ❌ ERRO FATAL:`, error);
         res.status(500).json({
-            error: 'Erro interno',
-            message: 'Ocorreu um erro inesperado ao processar sua análise.'
+            error: 'Erro ao processar arquivo',
+            message: 'Ocorreu um erro inesperado. Tente novamente com outro arquivo.'
         });
     }
 });

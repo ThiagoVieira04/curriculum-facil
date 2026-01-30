@@ -1,26 +1,6 @@
 {
   "version": 2,
-  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/cv/:id",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
-    }
-  ],
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "public/**"
-    }
-  },
-  "env": {
-    "NODE_ENV": "production"
-  }
+    { "source": "/(.*)", "destination": "/api/index.js" }
+  ]
 }
