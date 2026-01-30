@@ -74,134 +74,135 @@ async function extractTextFromDocx(buffer) {
 }
 
 /**
- * Aplica OCR em um PDF escaneado
- * Nota: Versão simplificada que usa Tesseract direto no buffer
- * Para PDFs reais com múltiplas páginas, considere usar pdftoppm ou similar
+ * Aplica OCR em um PDF escaneado com timeout protetor
+ * IMPORTANTE: OCR em Vercel serverless é arriscado, usado com timeout máximo
  * @param {Buffer} pdfBuffer - Buffer do PDF escaneado
  * @returns {Promise<{text: string, confidence: number}>}
  */
 async function applyOCRToPdf(pdfBuffer) {
     let tempFile = null;
+    const OCR_TIMEOUT_MS = 10000; // 10 segundos máximo para OCR em serverless
     
     try {
-        console.log('🔍 Iniciando OCR em PDF escaneado...');
-        console.log('⚠️  Nota: OCR de PDF é computacionalmente intensivo');
-        console.log('   Para melhor desempenho, converta o PDF para imagem em produção');
+        console.log('[OCR-PDF] 🔍 Iniciando OCR em PDF escaneado com timeout 10s...');
         
         // Salvar PDF temporariamente
         tempFile = path.join(os.tmpdir(), `ocr_pdf_${Date.now()}.pdf`);
         await fs.writeFile(tempFile, pdfBuffer);
         
-        // Tentar ler como imagem (Tesseract pode processar PDFs em alguns casos)
-        console.log(`📸 Processando PDF como imagem...`);
-        const result = await Tesseract.recognize(
+        // CRÍTICO: Usar Promise.race para garantir timeout
+        const ocrPromise = Tesseract.recognize(
             tempFile,
-            'por', // Português
+            'por',
             {
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progress = Math.round(m.progress * 100);
                         if (progress % 20 === 0) {
-                            console.log(`   OCR Progress: ${progress}%`);
+                            console.log(`[OCR-PDF] Progress: ${progress}%`);
                         }
                     }
                 }
             }
         );
         
-        if (result.data.text) {
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('OCR timeout após 10s')), OCR_TIMEOUT_MS)
+        );
+        
+        const result = await Promise.race([ocrPromise, timeoutPromise]);
+        
+        if (result && result.data && result.data.text) {
             const text = (result.data.text || '').trim();
             const confidence = result.data.confidence / 100;
             
-            console.log(`✅ OCR completado: ${text.length} caracteres, Confiança: ${(confidence * 100).toFixed(1)}%`);
-            
+            console.log(`[OCR-PDF] ✅ Sucesso: ${text.length} chars, ${(confidence * 100).toFixed(0)}% confiança`);
             return { text, confidence };
         } else {
-            // Se OCR falhou, retornar vazio mas sem erro
-            console.log('⚠️  OCR retornou texto vazio');
+            console.log('[OCR-PDF] ⚠️  Nenhum texto extraído');
             return { text: '', confidence: 0 };
         }
         
     } catch (error) {
-        console.warn('⚠️  OCR em PDF falhou:', error.message);
-        console.log('   → Isso é esperado para PDFs multipage ou com baixa qualidade');
-        console.log('   → Sugestão: Use imagens da página individual em produção');
-        // Não lançar erro, retornar vazio
+        console.warn(`[OCR-PDF] ❌ Timeout ou erro: ${error.message}`);
+        // NÃO lançar erro - retornar vazio gracefully
         return { text: '', confidence: 0 };
     } finally {
         if (tempFile) {
             try {
                 await fs.unlink(tempFile);
             } catch (e) {
-                console.warn('Erro ao limpar arquivo temporário:', e.message);
+                // Silenciar erros de limpeza
             }
         }
     }
 }
 
 /**
- * Aplica OCR em uma imagem
+ * Aplica OCR em uma imagem com timeout protetor
  * @param {Buffer} imageBuffer - Buffer da imagem
  * @returns {Promise<{text: string, confidence: number}>}
  */
 async function applyOCRToImage(imageBuffer) {
     let tempFile = null;
+    const OCR_TIMEOUT_MS = 10000; // 10 segundos máximo para OCR
     
     try {
-        console.log('🔍 Iniciando OCR em imagem...');
+        console.log('[OCR-IMG] 🔍 Iniciando OCR em imagem com timeout 10s...');
         
-        // Validar que é uma imagem válida
+        // Validação rápida do buffer
         if (!imageBuffer || imageBuffer.length < 100) {
-            console.warn('⚠️  Buffer muito pequeno para ser imagem válida');
+            console.warn('[OCR-IMG] ⚠️  Buffer muito pequeno');
             return { text: '', confidence: 0 };
         }
         
         // Salvar imagem temporariamente
-        tempFile = path.join(os.tmpdir(), `ocr_${Date.now()}.png`);
+        tempFile = path.join(os.tmpdir(), `ocr_img_${Date.now()}.png`);
         await fs.writeFile(tempFile, imageBuffer);
         
-        // Aplicar OCR com timeout e tratamento de erro robusto
-        try {
-            const result = await Tesseract.recognize(
-                tempFile,
-                'por', // Português
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            if (progress % 20 === 0 && progress > 0) {
-                                console.log(`   OCR Progress: ${progress}%`);
-                            }
+        // CRÍTICO: Promise.race com timeout
+        const ocrPromise = Tesseract.recognize(
+            tempFile,
+            'por',
+            {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const progress = Math.round(m.progress * 100);
+                        if (progress % 25 === 0 && progress > 0) {
+                            console.log(`[OCR-IMG] Progress: ${progress}%`);
                         }
                     }
                 }
-            );
-            
-            const text = (result.data.text || '').trim();
-            const confidence = (result.data.confidence || 0) / 100;
-            
-            if (text.length > 0) {
-                console.log(`✅ OCR completado: ${text.length} caracteres, Confiança: ${(confidence * 100).toFixed(1)}%`);
             }
-            
-            return { text, confidence };
-            
-        } catch (ocrError) {
-            console.warn('⚠️  Tesseract falhou:', ocrError.message);
-            // Retornar vazio em vez de falhar
-            return { text: '', confidence: 0 };
+        );
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('OCR timeout após 10s')), OCR_TIMEOUT_MS)
+        );
+        
+        const result = await Promise.race([ocrPromise, timeoutPromise]);
+        
+        const text = (result.data.text || '').trim();
+        const confidence = (result.data.confidence || 0) / 100;
+        
+        if (text.length > 0) {
+            console.log(`[OCR-IMG] ✅ Sucesso: ${text.length} chars, ${(confidence * 100).toFixed(0)}% confiança`);
+        } else {
+            console.log('[OCR-IMG] ⚠️  Nenhum texto extraído');
         }
         
+        return { text, confidence };
+        
     } catch (error) {
-        console.error('❌ Erro ao processar imagem:', error.message);
-        // Retornar resultado vazio em vez de lançar erro
+        console.warn(`[OCR-IMG] ❌ Timeout ou erro: ${error.message}`);
+        // Retornar gracefully sem falhar
         return { text: '', confidence: 0 };
     } finally {
         if (tempFile) {
             try {
                 await fs.unlink(tempFile);
             } catch (e) {
-                // Silenciosamente ignorar erro de limpeza
+                // Silenciar erros de limpeza
             }
         }
     }

@@ -965,7 +965,7 @@ app.post('/api/generate-cv', (req, res, next) => {
     }
 });
 
-// Análise ATS de Arquivo (Upload) - VERSÃO ROBUSTA COM OCR AUTOMÁTICO
+// Análise ATS de Arquivo (Upload) - VERSÃO ROBUSTA COM TIMEOUT E OCR PROTEGIDO
 app.post('/api/ats-analyze-file', (req, res, next) => {
     upload.single('resume')(req, res, (err) => {
         if (err instanceof multer.MulterError) {
@@ -979,11 +979,35 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
     });
 }, async (req, res) => {
     const requestId = Date.now().toString(36);
-    console.log(`\n[${requestId}] 🚀 ========== INICIANDO ANÁLISE ATS DE ARQUIVO ==========`);
+    const REQUEST_TIMEOUT_MS = 25000; // 25 segundos máximo para a requisição completa
+    let responseEnviada = false;
+    
+    // Garantir que a resposta SEMPRE seja enviada
+    const garantirResposta = (statusCode, data) => {
+        if (!responseEnviada && !res.headersSent) {
+            responseEnviada = true;
+            return res.status(statusCode).json(data);
+        }
+    };
+    
+    // CRÍTICO: Timeout da requisição completa
+    const timeoutId = setTimeout(() => {
+        console.error(`[${requestId}] ❌ TIMEOUT GERAL: Requisição excedeu 25 segundos`);
+        garantirResposta(408, {
+            error: 'Timeout na análise',
+            message: 'O processamento demorou muito. Tente novamente com um arquivo menor ou de melhor qualidade.'
+        });
+    }, REQUEST_TIMEOUT_MS);
+    
+    // Limpar timeout quando resposta for enviada
+    res.on('finish', () => clearTimeout(timeoutId));
 
     try {
+        console.log(`\n[${requestId}] 🚀 ========== INICIANDO ANÁLISE ATS ==========`);
+
         if (!req.file) {
-            return res.status(400).json({ 
+            clearTimeout(timeoutId);
+            return garantirResposta(400, { 
                 error: 'Arquivo não encontrado',
                 message: 'Nenhum arquivo foi enviado. Verifique se o upload foi completado.' 
             });
@@ -991,37 +1015,55 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
 
         // 1. Validação de Tamanho
         if (req.file.size === 0) {
-            return res.status(400).json({
+            clearTimeout(timeoutId);
+            return garantirResposta(400, {
                 error: 'Arquivo vazio',
                 message: 'O arquivo enviado está vazio. Tente novamente com um arquivo válido.'
             });
         }
 
         if (req.file.size > config.UPLOAD.RESUME.MAX_FILE_SIZE) {
-            return res.status(413).json({
+            clearTimeout(timeoutId);
+            return garantirResposta(413, {
                 error: 'Arquivo muito grande',
                 message: `Arquivo excede o tamanho máximo permitido (${config.UPLOAD.RESUME.MAX_FILE_SIZE / 1024 / 1024}MB).`
             });
         }
 
-        console.log(`[${requestId}] 📁 Arquivo recebido: ${req.file.originalname} (${req.file.size} bytes)`);
+        console.log(`[${requestId}] 📁 Arquivo: ${req.file.originalname} (${req.file.size} bytes)`);
 
         // 2. Detectar tipo MIME
         let typeInfo = await fileType.fromBuffer(req.file.buffer);
         let mimeType = typeInfo ? typeInfo.mime : req.file.mimetype || 'application/octet-stream';
         
-        console.log(`[${requestId}] 🔍 Tipo detectado: ${mimeType}`);
+        console.log(`[${requestId}] 🔍 Tipo: ${mimeType}`);
 
-        // 3. Processar currículo com ATS Processor (suporta OCR automático)
-        console.log(`[${requestId}] ⚙️ Processando documento...`);
-        const processingResult = await atsProcessor.processResume(req.file.buffer, mimeType);
+        // 3. Processar currículo COM TIMEOUT PROTETOR
+        console.log(`[${requestId}] ⚙️  Processando (timeout: 15s)...`);
+        
+        // Promise.race para evitar travamento do OCR
+        const processingPromise = atsProcessor.processResume(req.file.buffer, mimeType);
+        const processingTimeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Processamento excedeu 15 segundos')), 15000)
+        );
+        
+        let processingResult;
+        try {
+            processingResult = await Promise.race([processingPromise, processingTimeout]);
+        } catch (e) {
+            console.error(`[${requestId}] ⚠️  Processamento timeou ou falhou: ${e.message}`);
+            // Continuar com resultado vazio - retornar erro apropriado
+            clearTimeout(timeoutId);
+            return garantirResposta(422, {
+                error: 'Processamento timeout',
+                message: 'O arquivo demorou muito para ser processado. Pode estar corrompido ou ser uma imagem muito grande. Tente com outro arquivo.'
+            });
+        }
 
         // 4. Validar resultado da extração
         if (!processingResult.text || processingResult.text.length < 50) {
-            console.error(`[${requestId}] ❌ Texto extraído insuficiente: ${processingResult.text?.length || 0} caracteres`);
-            console.log(`[${requestId}] 📊 Detalhes:`, processingResult.details);
+            console.error(`[${requestId}] ❌ Texto insuficiente: ${processingResult.text?.length || 0} chars`);
 
-            // Mensagem de erro diferenciada
             const errorType = processingResult.details.error;
             let errorMessage = '';
 
@@ -1030,33 +1072,33 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
             } else if (processingResult.details.isScanned === true && !processingResult.isOCR) {
                 errorMessage = 'PDF escaneado detectado mas OCR falhou. O arquivo pode ter imagem de baixa qualidade.';
             } else if (processingResult.isOCR && processingResult.confidence < 0.5) {
-                errorMessage = `OCR aplicado com baixa confiança (${(processingResult.confidence * 100).toFixed(0)}%). Tente com uma imagem/PDF de melhor qualidade.`;
+                errorMessage = `OCR com baixa confiança (${(processingResult.confidence * 100).toFixed(0)}%). Tente com arquivo de melhor qualidade.`;
             } else if (processingResult.details.error) {
-                errorMessage = `Erro ao processar: ${processingResult.details.error}. Tente com outro arquivo.`;
+                errorMessage = `Erro ao processar: ${processingResult.details.error}`;
             } else {
-                errorMessage = 'Conteúdo insuficiente ou ilegível. Verifique se o arquivo contém texto legível.';
+                errorMessage = 'Conteúdo insuficiente ou ilegível.';
             }
 
-            return res.status(422).json({
+            clearTimeout(timeoutId);
+            return garantirResposta(422, {
                 error: 'Conteúdo não processável',
                 message: errorMessage,
                 debug: {
                     method: processingResult.method,
                     textLength: processingResult.text?.length || 0,
                     isOCR: processingResult.isOCR,
-                    confidence: processingResult.confidence,
-                    details: processingResult.details
+                    confidence: processingResult.confidence
                 }
             });
         }
 
-        console.log(`[${requestId}] ✅ Texto extraído com sucesso: ${processingResult.text.length} caracteres`);
-        console.log(`[${requestId}] 📊 Método: ${processingResult.method}, OCR: ${processingResult.isOCR}, Confiança: ${(processingResult.confidence * 100).toFixed(1)}%`);
+        console.log(`[${requestId}] ✅ Texto: ${processingResult.text.length} chars, Método: ${processingResult.method}`);
 
-        // 5. Realizar análise ATS
+        // 5. Realizar análise ATS (síncrono - rápido)
+        console.log(`[${requestId}] 📊 Analisando ATS...`);
         const report = analyzeATS(processingResult.text);
 
-        // 6. Adicionar metadados do processamento ao relatório
+        // 6. Adicionar metadados
         report.processingInfo = {
             method: processingResult.method,
             isOCR: processingResult.isOCR,
@@ -1065,14 +1107,16 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
             textLength: processingResult.text.length
         };
 
-        console.log(`[${requestId}] 📋 Análise ATS concluída. Score: ${report.score}`);
-        console.log(`[${requestId}] ========== FIM DA ANÁLISE ==========\n`);
-
-        res.json(report);
+        console.log(`[${requestId}] 🎉 Concluído! Score: ${report.score}`);
+        console.log(`[${requestId}] ========== FIM ==========\n`);
+        
+        clearTimeout(timeoutId);
+        return garantirResposta(200, report);
 
     } catch (error) {
-        console.error(`[${requestId}] ❌ ERRO FATAL:`, error);
-        res.status(500).json({
+        console.error(`[${requestId}] ❌ ERRO CRÍTICO:`, error.message);
+        clearTimeout(timeoutId);
+        return garantirResposta(500, {
             error: 'Erro ao processar arquivo',
             message: 'Ocorreu um erro inesperado. Tente novamente com outro arquivo.'
         });
