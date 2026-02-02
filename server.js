@@ -16,6 +16,7 @@ const fileType = require('file-type');
 const config = require('./config');
 const { validation, rateLimiting, cleanup, pdf, logger } = require('./utils');
 const atsProcessor = require('./ats-processor');
+const { validateCompanyData, checkCompanyLimit } = require('./middleware/companyValidation');
 
 const app = express();
 const PORT = config.PORT;
@@ -1274,6 +1275,146 @@ app.get('*', (req, res, next) => {
     }
     // Para outras rotas, serve o index.html
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ==========================================
+// APIs de Gerenciamento de Empresas (NEW)
+// ==========================================
+
+/**
+ * POST /api/companies/validate
+ * Valida dados de uma empresa no backend
+ * Camada de segurança para evitar manipulações
+ */
+app.post('/api/companies/validate', (req, res) => {
+    try {
+        const company = req.body;
+
+        // Validação de dados básicos
+        if (!company || typeof company !== 'object') {
+            return res.status(400).json({
+                success: false,
+                message: 'Dados inválidos',
+                statusCode: 400
+            });
+        }
+
+        // Valida dados da empresa
+        const validation = validateCompanyData(company);
+
+        if (!validation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Dados de empresa inválidos',
+                errors: validation.errors,
+                statusCode: 400
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Dados válidos',
+            statusCode: 200
+        });
+    } catch (error) {
+        logger.error('Erro em /api/companies/validate:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao validar empresa',
+            statusCode: 500
+        });
+    }
+});
+
+/**
+ * POST /api/companies/check-limit
+ * Verifica se o usuário pode adicionar mais empresas
+ * Regra de segurança no backend
+ */
+app.post('/api/companies/check-limit', (req, res) => {
+    try {
+        const { currentCompanyCount = 0 } = req.body;
+
+        // Validação do input
+        if (typeof currentCompanyCount !== 'number' || currentCompanyCount < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'currentCompanyCount deve ser um número positivo',
+                statusCode: 400
+            });
+        }
+
+        // Verifica limite
+        const limitCheck = checkCompanyLimit(currentCompanyCount);
+
+        res.status(200).json({
+            success: true,
+            canAdd: limitCheck.canAdd,
+            message: limitCheck.message || 'Você pode adicionar mais empresas',
+            currentCount: currentCompanyCount,
+            maxCount: 10,
+            statusCode: 200
+        });
+    } catch (error) {
+        logger.error('Erro em /api/companies/check-limit:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao verificar limite',
+            statusCode: 500
+        });
+    }
+});
+
+/**
+ * POST /api/companies/add
+ * Endpoint de exemplo para adicionar empresa
+ * Implementar com seu banco de dados/storage
+ */
+app.post('/api/companies/add', (req, res) => {
+    try {
+        const company = req.body;
+
+        // Validação de dados
+        const validation = validateCompanyData(company);
+        if (!validation.valid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Dados de empresa inválidos',
+                errors: validation.errors,
+                statusCode: 400
+            });
+        }
+
+        // Verifica limite (aqui seria necessário contar empresas do usuário no DB)
+        const currentCount = 3; // Exemplo - seria obtido do banco de dados real
+        const limitCheck = checkCompanyLimit(currentCount);
+
+        if (!limitCheck.canAdd) {
+            return res.status(400).json({
+                success: false,
+                message: limitCheck.message,
+                reason: 'LIMIT_REACHED',
+                statusCode: 400
+            });
+        }
+
+        // TODO: Salvar no banco de dados real
+        // await companyRepository.save(company);
+
+        res.status(201).json({
+            success: true,
+            message: 'Empresa adicionada com sucesso',
+            data: company,
+            statusCode: 201
+        });
+    } catch (error) {
+        logger.error('Erro em /api/companies/add:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao adicionar empresa',
+            statusCode: 500
+        });
+    }
 });
 
 // Middleware de tratamento de erros melhorado

@@ -6,6 +6,9 @@ let selectedTemplateId = 'simples';
 let lastGeneratedCV = null;
 let isSubmitting = false; // Previne duplo submit
 
+// Instância do gerenciador de empresas (inicializada quando o DOM estiver pronto)
+let addCompanyButtonManager = null;
+
 // Configurações
 const CONFIG = {
     MAX_FILE_SIZE: 4 * 1024 * 1024, // 4MB (Vercel Limit safe margin)
