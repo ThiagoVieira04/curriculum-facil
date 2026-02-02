@@ -433,81 +433,75 @@ const templates = {
     `,
 
     moderno: (data) => `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 750px; margin: 0 auto; padding: 0; line-height: 1.6; background: white;">
-            <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 40px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px;">
-                ${data.photo ? `<img src="${data.photo}" style="width: 90px; height: 120px; border-radius: 4px; border: 4px solid rgba(255,255,255,0.3); object-fit: cover;">` : ''}
-                <div style="text-align: left;">
-                    <h1 style="margin: 0; font-size: ${calculateNameFontSize(data.nome)}; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.nome}</h1>
-                    <h2 style="margin: 10px 0; font-size: 20px; font-weight: normal; opacity: 0.9;">${data.cargo}</h2>
-                    <p style="margin: 10px 0; font-size: 14px; opacity: 0.9;">
-                        📧 ${data.email} | 📱 ${data.telefone} | 📍 ${data.cidade}
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 750px; margin: 0 auto; padding: 20px; line-height: 1.6; background: white;">
+            <!-- Header Compacto - Sem quebra de página -->
+            <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 25px; display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px; border-radius: 8px;">
+                ${data.photo ? `<img src="${data.photo}" style="width: 70px; height: 90px; border-radius: 4px; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; flex-shrink: 0;">` : ''}
+                <div style="flex: 1; min-width: 0;">
+                    <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: bold;">${data.nome}</h1>
+                    <h2 style="margin: 0 0 8px 0; font-size: 16px; font-weight: normal; opacity: 0.95;">${data.cargo}</h2>
+                    <p style="margin: 0 0 6px 0; font-size: 13px; opacity: 0.9; word-break: break-word;">
+                        📧 ${data.email} | 📱 ${data.telefone}
                     </p>
-                    ${data.nascimento || data.estadoCivil || data.naturalidade || data.nacionalidade ? `
-                        <p style="margin: 5px 0; font-size: 12px; opacity: 0.8;">
-                            ${data.nascimento ? `${formatDate(data.nascimento)}` : ''}
-                            ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
-                            ${data.naturalidade ? ` | ${data.naturalidade}` : ''}
-                            ${data.nacionalidade ? ` | ${data.nacionalidade}` : ''}
-                        </p>
-                    ` : ''}
+                    <p style="margin: 0; font-size: 13px; opacity: 0.9;">
+                        📍 ${data.cidade}
+                        ${data.nascimento ? ` | ${formatDate(data.nascimento)}` : ''}
+                        ${data.estadoCivil ? ` | ${data.estadoCivil}` : ''}
+                    </p>
                 </div>
             </div>
             
-            <div style="padding: 0 40px 40px 40px;">
+            <!-- Conteúdo - Reduzido para caber em uma página -->
+            <div style="padding: 0;">
                 ${data.objetivo ? `
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="color: #6b7280; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #6b7280; padding-bottom: 5px;">OBJETIVO</h3>
-                        <p style="text-align: justify;">${data.objetivo}</p>
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #6b7280; padding-bottom: 4px; margin: 0 0 8px 0;">Objetivo</h3>
+                        <p style="text-align: justify; margin: 0; font-size: 13px; line-height: 1.5;">${data.objetivo}</p>
                     </div>
                 ` : ''}
                 
-                <div style="margin-bottom: 25px;">
-                    <h3 style="color: #6b7280; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #6b7280; padding-bottom: 5px;">EXPERIÊNCIA PROFISSIONAL</h3>
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #6b7280; padding-bottom: 4px; margin: 0 0 8px 0;">Experiência</h3>
                     ${data.empresa1 ? `
-                        <div style="margin-bottom: 15px;">
-                            <strong>${data.empresa1}</strong> - ${data.funcao1}<br>
-                            <em>${data.periodo1}</em>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="font-size: 13px;">${data.empresa1}</strong> <span style="font-size: 12px; color: #666;">- ${data.funcao1}</span>
+                            ${data.periodo1 ? `<div style="font-size: 11px; color: #888; margin-top: 2px;">${data.periodo1}</div>` : ''}
                         </div>
                     ` : ''}
                     ${data.empresa2 ? `
-                        <div style="margin-bottom: 15px;">
-                            <strong>${data.empresa2}</strong> - ${data.funcao2}<br>
-                            <em>${data.periodo2}</em>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="font-size: 13px;">${data.empresa2}</strong> <span style="font-size: 12px; color: #666;">- ${data.funcao2}</span>
+                            ${data.periodo2 ? `<div style="font-size: 11px; color: #888; margin-top: 2px;">${data.periodo2}</div>` : ''}
                         </div>
                     ` : ''}
                     ${data.empresa3 ? `
-                        <div style="margin-bottom: 15px;">
-                            <strong>${data.empresa3}</strong> - ${data.funcao3}<br>
-                            <em>${data.periodo3}</em>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="font-size: 13px;">${data.empresa3}</strong> <span style="font-size: 12px; color: #666;">- ${data.funcao3}</span>
+                            ${data.periodo3 ? `<div style="font-size: 11px; color: #888; margin-top: 2px;">${data.periodo3}</div>` : ''}
                         </div>
                     ` : ''}
-                    <p style="text-align: justify;">${data.experiencia}</p>
+                    <p style="text-align: justify; margin: 8px 0 0 0; font-size: 12px; line-height: 1.5;">${data.experiencia}</p>
                 </div>
                 
-                <div style="margin-bottom: 25px;">
-                    <h3 style="color: #6b7280; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #6b7280; padding-bottom: 5px;">FORMAÇÃO</h3>
-                    <p style="text-align: justify;">${data.formacao}</p>
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #6b7280; padding-bottom: 4px; margin: 0 0 8px 0;">Formação</h3>
+                    <p style="text-align: justify; margin: 0; font-size: 12px; line-height: 1.5;">${data.formacao}</p>
                 </div>
                 
                 ${data.cursos ? `
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="color: #6b7280; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #6b7280; padding-bottom: 5px;">CURSOS E CERTIFICAÇÕES</h3>
-                        <p style="text-align: justify;">${data.cursos}</p>
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #6b7280; padding-bottom: 4px; margin: 0 0 8px 0;">Cursos</h3>
+                        <p style="text-align: justify; margin: 0; font-size: 12px; line-height: 1.5;">${data.cursos}</p>
                     </div>
                 ` : ''}
                 
-                <div style="margin-bottom: 25px;">
-                    <h3 style="color: #6b7280; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #6b7280; padding-bottom: 5px;">HABILIDADES</h3>
-                    <p style="text-align: justify;">${data.habilidades}</p>
+                <div>
+                    <h3 style="color: #6b7280; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #6b7280; padding-bottom: 4px; margin: 0 0 8px 0;">Habilidades</h3>
+                    <p style="text-align: justify; margin: 0; font-size: 12px; line-height: 1.5;">${data.habilidades}</p>
                 </div>
                 
-                <!-- Rodapé com nome -->
-                <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: right; font-style: italic; color: #888; font-size: 12px;">
-                    ${data.nome}
-                </div>
-                
-                <!-- Assinatura -->
-                <div style="margin-top: 20px; text-align: center; font-size: 9px; color: #aaa; opacity: 0.7;">
+                <!-- Rodapé -->
+                <div style="margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 8px; text-align: center; font-size: 10px; color: #999;">
                     Desenvolvido por Papel e Sonhos Informática
                 </div>
             </div>
