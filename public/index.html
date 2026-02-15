@@ -29,14 +29,16 @@
 </head>
 
 <body>
-    <header>
-        <nav>
+    <!-- Skip to main content -->
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+    
+    <header role="banner">
+        <nav role="navigation" aria-label="Navegação principal">
             <div class="container">
-                <a href="/" class="logo-link">
-                    <h1>📄 CurrículoFácil</h1>
+                <a href="/" class="logo-link" aria-label="CurrículoFácil - Página inicial">
+                    <h1><span aria-hidden="true">📄</span> CurrículoFácil</h1>
                 </a>
                 <div class="nav-links">
-
                     <a href="#modelos">Modelos</a>
                     <a href="#como-funciona">Como Funciona</a>
                     <a href="/dicas">Dicas</a>
@@ -47,63 +49,66 @@
         </nav>
     </header>
 
-    <main>
+    <main id="main-content" role="main">
         <!-- Hero Section -->
-        <section class="hero">
+        <section class="hero" aria-labelledby="hero-heading">
             <div class="container">
                 <div class="hero-content">
-                    <h2>Crie seu Currículo Profissional em 3 Minutos</h2>
+                    <h2 id="hero-heading">Crie seu Currículo Profissional em 3 Minutos</h2>
                     <p>100% Gratuito • Sem Cadastro • Com IA • Download PDF</p>
                     <div class="cta-container">
-                        <button class="cta-button" onclick="startCreation()">
-                            🚀 Criar Currículo Grátis
+                        <button class="cta-button" onclick="startCreation()" aria-label="Criar currículo grátis agora">
+                            <span aria-hidden="true">🚀</span> Criar Currículo Grátis
                         </button>
-                        <button class="cta-button secondary" onclick="document.getElementById('ats-upload').click()">
-                            🔍 Analisar Currículo Existente (ATS)
+                        <button class="cta-button secondary" onclick="document.getElementById('ats-upload').click()" aria-label="Analisar currículo existente com sistema ATS">
+                            <span aria-hidden="true">🔍</span> Analisar Currículo Existente (ATS)
                         </button>
-                        <input type="file" id="ats-upload" style="display: none;" accept=".pdf,.docx"
+                        <label for="ats-upload" class="visually-hidden">Selecionar arquivo de currículo para análise (PDF ou DOCX)</label>
+                        <input type="file" id="ats-upload" accept=".pdf,.docx" aria-describedby="ats-upload-desc"
                             onchange="handleATSAnalyzeFile(event)">
+                        <span id="ats-upload-desc" class="visually-hidden">Formatos aceitos: PDF e DOCX. Tamanho máximo: 5MB</span>
                     </div>
-                    <div class="trust-indicators">
-                        <span>✅ Mais de 50.000 currículos criados</span>
-                        <span>✅ Aprovado por recrutadores</span>
-                        <span>✅ Compatível com ATS</span>
+                    <div class="trust-indicators" role="list" aria-label="Indicadores de confiança">
+                        <span role="listitem"><span aria-hidden="true">✅</span> Mais de 50.000 currículos criados</span>
+                        <span role="listitem"><span aria-hidden="true">✅</span> Aprovado por recrutadores</span>
+                        <span role="listitem"><span aria-hidden="true">✅</span> Compatível com ATS</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Como Funciona -->
-        <section id="como-funciona" class="how-it-works">
+        <section id="como-funciona" class="how-it-works" aria-labelledby="how-it-works-heading">
             <div class="container">
-                <h3>Como Funciona</h3>
-                <div class="steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <h4>Preencha seus dados</h4>
+                <h2 id="how-it-works-heading">Como Funciona</h2>
+                <ol class="steps" aria-label="Passos para criar seu currículo">
+                    <li class="step">
+                        <div class="step-number" aria-hidden="true">1</div>
+                        <h3>Preencha seus dados</h3>
                         <p>Nome, cargo, experiência e formação</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <h4>IA melhora o texto</h4>
+                    </li>
+                    <li class="step">
+                        <div class="step-number" aria-hidden="true">2</div>
+                        <h3>IA melhora o texto</h3>
                         <p>Linguagem profissional automática</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <h4>Baixe em PDF</h4>
+                    </li>
+                    <li class="step">
+                        <div class="step-number" aria-hidden="true">3</div>
+                        <h3>Baixe em PDF</h3>
                         <p>Alta qualidade, sem marca d'água</p>
-                    </div>
-                </div>
+                    </li>
+                </ol>
             </div>
         </section>
 
         <!-- Modelos -->
-        <section id="modelos" class="templates">
+        <section id="modelos" class="templates" aria-labelledby="templates-heading">
             <div class="container">
-                <h3>Modelos Profissionais</h3>
-                <div class="template-grid">
-                    <div class="template-card" onclick="showTemplatePreview('simples')">
-                        <div class="template-thumbnail"
+                <h2 id="templates-heading">Modelos Profissionais</h2>
+                <div class="template-grid" role="list" aria-label="Modelos de currículo disponíveis">
+                    <article class="template-card" role="listitem">
+                        <button class="template-card-button" onclick="showTemplatePreview('simples')" aria-label="Visualizar modelo Simples - Ideal para primeiro emprego">
+                        <div class="template-thumbnail" aria-hidden="true"
                             style="width:100%;height:300px;background:white;border:1px solid #ddd;padding:15px;font-family:Arial,sans-serif;font-size:10px;line-height:1.2;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
                             <div
                                 style="display:flex;align-items:center;gap:10px;margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:10px;">
@@ -138,17 +143,20 @@
                                     SEO, Copywriting...</div>
                             </div>
                         </div>
+                        </button>
                         <div class="template-info">
-                            <h4>Simples</h4>
+                            <h3>Simples</h3>
                             <p>Ideal para primeiro emprego</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('simples')">🔍 Ver
-                                Ampliado</button>
+                                onclick="event.stopPropagation(); showTemplatePreview('simples')" aria-label="Ver modelo Simples ampliado">
+                                <span aria-hidden="true">🔍</span> Ver Ampliado
+                            </button>
                         </div>
-                    </div>
+                    </article>
 
-                    <div class="template-card" onclick="showTemplatePreview('moderno')">
-                        <div class="template-thumbnail"
+                    <article class="template-card" role="listitem">
+                        <button class="template-card-button" onclick="showTemplatePreview('moderno')" aria-label="Visualizar modelo Moderno - Para profissionais experientes">
+                        <div class="template-thumbnail" aria-hidden="true"
                             style="width:100%;height:300px;background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);color:white;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
                             <div
                                 style="padding:20px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.1);">
@@ -184,17 +192,20 @@
                                 </div>
                             </div>
                         </div>
+                        </button>
                         <div class="template-info">
-                            <h4>Moderno</h4>
+                            <h3>Moderno</h3>
                             <p>Para profissionais experientes</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('moderno')">🔍 Ver
-                                Ampliado</button>
+                                onclick="event.stopPropagation(); showTemplatePreview('moderno')" aria-label="Ver modelo Moderno ampliado">
+                                <span aria-hidden="true">🔍</span> Ver Ampliado
+                            </button>
                         </div>
-                    </div>
+                    </article>
 
-                    <div class="template-card" onclick="showTemplatePreview('executivo')">
-                        <div class="template-thumbnail"
+                    <article class="template-card" role="listitem">
+                        <button class="template-card-button" onclick="showTemplatePreview('executivo')" aria-label="Visualizar modelo Executivo - Para cargos de liderança">
+                        <div class="template-thumbnail" aria-hidden="true"
                             style="width:100%;height:300px;background:white;border:2px solid #333;padding:0;font-family:'Helvetica Neue',sans-serif;font-size:9px;overflow:hidden;cursor:pointer;transition:transform 0.3s;display:flex;">
                             <!-- Sidebar -->
                             <div style="width:30%;background:#2c3e50;height:100%;padding:10px 5px;text-align:center;">
@@ -212,23 +223,23 @@
                                 <div style="font-size:8px;color:#333;">Experiência...</div>
                             </div>
                         </div>
+                        </button>
                         <div class="template-info">
-                            <h4>Executivo</h4>
+                            <h3>Executivo</h3>
                             <p>Para cargos de liderança</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('executivo')">🔍 Ver
-                                Ampliado</button>
+                                onclick="event.stopPropagation(); showTemplatePreview('executivo')" aria-label="Ver modelo Executivo ampliado">
+                                <span aria-hidden="true">🔍</span> Ver Ampliado
+                            </button>
                         </div>
-                    </div>
+                    </article>
                 </div>
 
                 <!-- Modal de Preview -->
-                <div id="template-modal" class="modal"
-                    style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.8);">
-                    <div class="modal-content"
-                        style="background:white;margin:2% auto;padding:20px;width:90%;max-width:800px;border-radius:10px;position:relative;max-height:90vh;overflow-y:auto;">
-                        <span class="close" onclick="closeTemplatePreview()"
-                            style="position:absolute;top:15px;right:25px;font-size:30px;cursor:pointer;color:#666;">&times;</span>
+                <div id="template-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+                    <div class="modal-content">
+                        <button class="close" onclick="closeTemplatePreview()" aria-label="Fechar visualização do modelo">&times;</button>
+                        <h2 id="modal-title" class="visually-hidden">Visualização do modelo de currículo</h2>
                         <div id="modal-template-content"></div>
                         <div style="text-align:center;margin-top:20px;">
                             <button onclick="closeTemplatePreview(); startCreation();" class="cta-button">Usar Este
@@ -241,47 +252,44 @@
     </main>
 
     <!-- Modal de Análise ATS -->
-    <div id="ats-modal" class="modal"
-        style="display:none;position:fixed;z-index:1001;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.8);">
-        <div class="modal-content"
-            style="background:white;margin:5% auto;padding:30px;width:90%;max-width:600px;border-radius:12px;position:relative;max-height:85vh;overflow-y:auto;box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-            <span class="close" onclick="closeATSModal()"
-                style="position:absolute;top:15px;right:25px;font-size:30px;cursor:pointer;color:#666;">&times;</span>
+    <div id="ats-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ats-modal-title" aria-hidden="true">
+        <div class="modal-content">
+            <button class="close" onclick="closeATSModal()" aria-label="Fechar relatório de análise ATS">&times;</button>
 
             <div style="text-align: center; margin-bottom: 25px;">
-                <h2 style="color: #333; margin-bottom: 10px;">📊 Relatório de Análise ATS</h2>
+                <h2 id="ats-modal-title" style="color: #333; margin-bottom: 10px;"><span aria-hidden="true">📊</span> Relatório de Análise ATS</h2>
                 <div id="ats-score-container"
-                    style="display: inline-block; padding: 20px; border-radius: 50%; background: #f0f7ff; margin: 10px 0;">
-                    <span id="ats-score-value" style="font-size: 48px; font-weight: bold; color: #2563eb;">0</span>
-                    <div style="font-size: 14px; color: #666;">Pontuação</div>
+                    style="display: inline-block; padding: 20px; border-radius: 50%; background: #f0f7ff; margin: 10px 0;" aria-live="polite">
+                    <span id="ats-score-value" style="font-size: 48px; font-weight: bold; color: #2563eb;" aria-label="Pontuação">0</span>
+                    <div style="font-size: 14px; color: #666;" aria-hidden="true">Pontuação</div>
                 </div>
                 <div id="ats-status-badge"
-                    style="margin-top: 10px; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; background: #eee;">
+                    style="margin-top: 10px; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; background: #eee;" aria-live="polite">
                     -</div>
             </div>
 
             <div id="ats-report-content">
-                <div class="report-section">
-                    <h4 style="color: #059669; margin-bottom: 10px;">✅ Pontos Fortes</h4>
+                <section class="report-section" aria-labelledby="ats-strengths-heading">
+                    <h3 id="ats-strengths-heading" style="color: #059669; margin-bottom: 10px;"><span aria-hidden="true">✅</span> Pontos Fortes</h3>
                     <ul id="ats-strengths"
-                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;">
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;" aria-live="polite">
                     </ul>
-                </div>
+                </section>
 
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" aria-hidden="true">
 
-                <div class="report-section">
-                    <h4 style="color: #d97706; margin-bottom: 10px;">⚠️ Oportunidades de Melhoria</h4>
+                <section class="report-section" aria-labelledby="ats-improvements-heading">
+                    <h3 id="ats-improvements-heading" style="color: #d97706; margin-bottom: 10px;"><span aria-hidden="true">⚠️</span> Oportunidades de Melhoria</h3>
                     <ul id="ats-improvements"
-                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;">
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;" aria-live="polite">
                     </ul>
-                </div>
+                </section>
 
                 <div id="ats-suggestions-box"
-                    style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; text-align: left;">
-                    <h5 style="margin: 0 0 10px 0; color: #92400e;">💡 Dicas Práticas</h5>
+                    style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; text-align: left;" role="complementary" aria-labelledby="ats-suggestions-heading">
+                    <h4 id="ats-suggestions-heading" style="margin: 0 0 10px 0; color: #92400e;"><span aria-hidden="true">💡</span> Dicas Práticas</h4>
                     <ul id="ats-suggestions"
-                        style="list-style-type: none; padding: 0; font-size: 14px; color: #78350f; display: flex; flex-direction: column; gap: 6px;">
+                        style="list-style-type: none; padding: 0; font-size: 14px; color: #78350f; display: flex; flex-direction: column; gap: 6px;" aria-live="polite">
                     </ul>
                 </div>
             </div>
@@ -292,20 +300,21 @@
         </div>
     </div>
 
-    <footer>
+    <footer role="contentinfo">
         <div class="container">
             <p style="font-size: 0.95rem; opacity: 0.9;">Papel e Sonhos Informática - Desde 28 de setembro de 2012,
                 qualidade e inovação ao seu serviço.</p>
-            <div class="footer-links">
+            <nav class="footer-links" aria-label="Links do rodapé">
                 <a href="/sobre">Sobre</a>
                 <a href="/contato">Contato</a>
                 <a href="/privacidade">Privacidade</a>
                 <a href="/termos">Termos</a>
-            </div>
+            </nav>
         </div>
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="js/accessibility.js"></script>
     <script src="js/main.js"></script>
     <script>
         // (adsbygoogle = window.adsbygoogle || []).push({});

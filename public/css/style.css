@@ -5,6 +5,67 @@
     box-sizing: border-box;
 }
 
+/* Acessibilidade: Skip Link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #2563eb;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 10000;
+    font-weight: 600;
+    border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #fbbf24;
+    outline-offset: 2px;
+}
+
+/* Acessibilidade: Visually Hidden */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Acessibilidade: Foco Visível */
+*:focus {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Acessibilidade: Input File Oculto */
+#ats-upload {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
 img,
 video {
     max-width: 100%;
@@ -206,6 +267,8 @@ section h3 {
     gap: 1.5rem;
     max-width: 800px;
     margin: 0 auto;
+    list-style: none;
+    padding: 0;
 }
 
 .step {
@@ -255,7 +318,8 @@ section h3 {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s, box-shadow 0.3s;
-    cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 
 .template-card:hover {
@@ -263,8 +327,23 @@ section h3 {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.template-card:hover .template-thumbnail {
+.template-card-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.template-card-button:hover .template-thumbnail {
     transform: scale(1.02);
+}
+
+.template-card-button:focus {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
 }
 
 .template-info {
@@ -301,6 +380,7 @@ section h3 {
 
 /* Modal */
 .modal {
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -310,6 +390,14 @@ section h3 {
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
     animation: fadeIn 0.3s ease;
+}
+
+.modal[aria-hidden="false"] {
+    display: block;
+}
+
+.modal[aria-hidden="true"] {
+    display: none;
 }
 
 .modal-content {
@@ -327,6 +415,8 @@ section h3 {
 }
 
 .close {
+    background: none;
+    border: none;
     position: absolute;
     top: 15px;
     right: 25px;
@@ -335,10 +425,15 @@ section h3 {
     color: #666;
     transition: color 0.3s;
     z-index: 1001;
+    padding: 8px;
+    line-height: 1;
 }
 
-.close:hover {
+.close:hover,
+.close:focus {
     color: #333;
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
 }
 
 @keyframes fadeIn {
@@ -541,6 +636,16 @@ footer {
     .nav-links {
         display: none;
     }
+    
+    /* Acessibilidade: Aumentar área de toque em mobile */
+    .cta-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .preview-btn {
+        min-height: 44px;
+    }
 
     .trust-indicators {
         font-size: 0.8rem;
@@ -587,6 +692,29 @@ footer {
 
 .error {
     color: #ef4444;
+}
+
+/* Acessibilidade: Prefer Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Acessibilidade: High Contrast Mode */
+@media (prefers-contrast: high) {
+    .cta-button {
+        border: 2px solid currentColor;
+    }
+    
+    *:focus {
+        outline-width: 4px;
+    }
 }
 
 /* Estilos para campos de experiência */
