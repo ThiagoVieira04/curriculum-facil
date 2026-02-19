@@ -558,6 +558,11 @@ async function downloadPDF(cvId) {
 
         trackEvent('pdf_downloaded', { filename: opt.filename });
 
+        // Show donation modal after successful PDF download
+        if (typeof showDonationModal === 'function') {
+            setTimeout(function () { showDonationModal(); }, 800);
+        }
+
     } catch (error) {
         console.error('Erro na geração do PDF:', error);
 

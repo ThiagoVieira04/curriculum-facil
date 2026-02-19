@@ -13,6 +13,7 @@
         content="currículo grátis, criar currículo online, gerador de currículo, currículo profissional, CV grátis, modelo de currículo, fazer currículo, currículo ATS, currículo com IA">
     <link rel="canonical" href="https://gerador-de-curriculos.vercel.app/">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/donation-modal.css">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
@@ -31,7 +32,7 @@
 <body>
     <!-- Skip to main content -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
-    
+
     <header role="banner">
         <nav role="navigation" aria-label="Navegação principal">
             <div class="container">
@@ -60,13 +61,16 @@
                         <button class="cta-button" onclick="startCreation()" aria-label="Criar currículo grátis agora">
                             <span aria-hidden="true">🚀</span> Criar Currículo Grátis
                         </button>
-                        <button class="cta-button secondary" onclick="document.getElementById('ats-upload').click()" aria-label="Analisar currículo existente com sistema ATS">
+                        <button class="cta-button secondary" onclick="document.getElementById('ats-upload').click()"
+                            aria-label="Analisar currículo existente com sistema ATS">
                             <span aria-hidden="true">🔍</span> Analisar Currículo Existente (ATS)
                         </button>
-                        <label for="ats-upload" class="visually-hidden">Selecionar arquivo de currículo para análise (PDF ou DOCX)</label>
+                        <label for="ats-upload" class="visually-hidden">Selecionar arquivo de currículo para análise
+                            (PDF ou DOCX)</label>
                         <input type="file" id="ats-upload" accept=".pdf,.docx" aria-describedby="ats-upload-desc"
                             onchange="handleATSAnalyzeFile(event)">
-                        <span id="ats-upload-desc" class="visually-hidden">Formatos aceitos: PDF e DOCX. Tamanho máximo: 5MB</span>
+                        <span id="ats-upload-desc" class="visually-hidden">Formatos aceitos: PDF e DOCX. Tamanho máximo:
+                            5MB</span>
                     </div>
                     <div class="trust-indicators" role="list" aria-label="Indicadores de confiança">
                         <span role="listitem"><span aria-hidden="true">✅</span> Mais de 50.000 currículos criados</span>
@@ -107,128 +111,139 @@
                 <h2 id="templates-heading">Modelos Profissionais</h2>
                 <div class="template-grid" role="list" aria-label="Modelos de currículo disponíveis">
                     <article class="template-card" role="listitem">
-                        <button class="template-card-button" onclick="showTemplatePreview('simples')" aria-label="Visualizar modelo Simples - Ideal para primeiro emprego">
-                        <div class="template-thumbnail" aria-hidden="true"
-                            style="width:100%;height:300px;background:white;border:1px solid #ddd;padding:15px;font-family:Arial,sans-serif;font-size:10px;line-height:1.2;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
-                            <div
-                                style="display:flex;align-items:center;gap:10px;margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:10px;">
+                        <button class="template-card-button" onclick="showTemplatePreview('simples')"
+                            aria-label="Visualizar modelo Simples - Ideal para primeiro emprego">
+                            <div class="template-thumbnail" aria-hidden="true"
+                                style="width:100%;height:300px;background:white;border:1px solid #ddd;padding:15px;font-family:Arial,sans-serif;font-size:10px;line-height:1.2;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
                                 <div
-                                    style="width:30px;height:40px;background:#eee;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-                                    👤</div>
-                                <div style="text-align:left;">
-                                    <div style="font-size:12px;font-weight:bold;color:#333;">MARIA SILVA SANTOS</div>
-                                    <div style="font-size:9px;color:#666;">Analista de Marketing Digital</div>
-                                    <div style="font-size:7px;color:#666;">📧 maria@email.com | 📱 (11) 99999-8888</div>
+                                    style="display:flex;align-items:center;gap:10px;margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:10px;">
+                                    <div
+                                        style="width:30px;height:40px;background:#eee;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                        👤</div>
+                                    <div style="text-align:left;">
+                                        <div style="font-size:12px;font-weight:bold;color:#333;">MARIA SILVA SANTOS
+                                        </div>
+                                        <div style="font-size:9px;color:#666;">Analista de Marketing Digital</div>
+                                        <div style="font-size:7px;color:#666;">📧 maria@email.com | 📱 (11) 99999-8888
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <div
+                                        style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
+                                        EXPERIÊNCIA PROFISSIONAL</div>
+                                    <div style="font-size:8px;margin-top:3px;">Atuo há 3 anos na área de marketing
+                                        digital,
+                                        com experiência em gestão de campanhas...</div>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <div
+                                        style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
+                                        FORMAÇÃO</div>
+                                    <div style="font-size:8px;margin-top:3px;">Graduação em Marketing pela Universidade
+                                        Mackenzie (2019-2022)...</div>
+                                </div>
+                                <div>
+                                    <div
+                                        style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
+                                        HABILIDADES</div>
+                                    <div style="font-size:8px;margin-top:3px;">Google Ads, Facebook Ads, Google
+                                        Analytics,
+                                        SEO, Copywriting...</div>
                                 </div>
                             </div>
-                            <div style="margin-bottom:8px;">
-                                <div
-                                    style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
-                                    EXPERIÊNCIA PROFISSIONAL</div>
-                                <div style="font-size:8px;margin-top:3px;">Atuo há 3 anos na área de marketing digital,
-                                    com experiência em gestão de campanhas...</div>
-                            </div>
-                            <div style="margin-bottom:8px;">
-                                <div
-                                    style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
-                                    FORMAÇÃO</div>
-                                <div style="font-size:8px;margin-top:3px;">Graduação em Marketing pela Universidade
-                                    Mackenzie (2019-2022)...</div>
-                            </div>
-                            <div>
-                                <div
-                                    style="font-size:9px;font-weight:bold;color:#333;border-bottom:1px solid #ccc;padding-bottom:2px;">
-                                    HABILIDADES</div>
-                                <div style="font-size:8px;margin-top:3px;">Google Ads, Facebook Ads, Google Analytics,
-                                    SEO, Copywriting...</div>
-                            </div>
-                        </div>
                         </button>
                         <div class="template-info">
                             <h3>Simples</h3>
                             <p>Ideal para primeiro emprego</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('simples')" aria-label="Ver modelo Simples ampliado">
+                                onclick="event.stopPropagation(); showTemplatePreview('simples')"
+                                aria-label="Ver modelo Simples ampliado">
                                 <span aria-hidden="true">🔍</span> Ver Ampliado
                             </button>
                         </div>
                     </article>
 
                     <article class="template-card" role="listitem">
-                        <button class="template-card-button" onclick="showTemplatePreview('moderno')" aria-label="Visualizar modelo Moderno - Para profissionais experientes">
-                        <div class="template-thumbnail" aria-hidden="true"
-                            style="width:100%;height:300px;background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);color:white;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
-                            <div
-                                style="padding:20px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.1);">
+                        <button class="template-card-button" onclick="showTemplatePreview('moderno')"
+                            aria-label="Visualizar modelo Moderno - Para profissionais experientes">
+                            <div class="template-thumbnail" aria-hidden="true"
+                                style="width:100%;height:300px;background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);color:white;overflow:hidden;cursor:pointer;transition:transform 0.3s;">
                                 <div
-                                    style="width:30px;height:40px;background:rgba(255,255,255,0.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-                                    👤</div>
-                                <div style="text-align:left;">
-                                    <div style="font-size:12px;font-weight:bold;">MARIA SILVA SANTOS</div>
-                                    <div style="font-size:9px;opacity:0.9;">Analista de Marketing Digital</div>
-                                    <div style="font-size:7px;opacity:0.8;">📧 maria@email.com | 📱 (11) 99999-8888
+                                    style="padding:20px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.1);">
+                                    <div
+                                        style="width:30px;height:40px;background:rgba(255,255,255,0.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                        👤</div>
+                                    <div style="text-align:left;">
+                                        <div style="font-size:12px;font-weight:bold;">MARIA SILVA SANTOS</div>
+                                        <div style="font-size:9px;opacity:0.9;">Analista de Marketing Digital</div>
+                                        <div style="font-size:7px;opacity:0.8;">📧 maria@email.com | 📱 (11) 99999-8888
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background:white;color:#333;padding:15px;font-size:8px;">
+                                    <div style="margin-bottom:8px;">
+                                        <div
+                                            style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
+                                            Experiência Profissional</div>
+                                        <div>Atuo há 3 anos na área de marketing digital, com experiência em gestão de
+                                            campanhas...</div>
+                                    </div>
+                                    <div style="margin-bottom:8px;">
+                                        <div
+                                            style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
+                                            Formação</div>
+                                        <div>Graduação em Marketing pela Universidade Mackenzie...</div>
+                                    </div>
+                                    <div>
+                                        <div
+                                            style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
+                                            Habilidades</div>
+                                        <div>Google Ads, Facebook Ads, Google Analytics...</div>
                                     </div>
                                 </div>
                             </div>
-                            <div style="background:white;color:#333;padding:15px;font-size:8px;">
-                                <div style="margin-bottom:8px;">
-                                    <div
-                                        style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
-                                        Experiência Profissional</div>
-                                    <div>Atuo há 3 anos na área de marketing digital, com experiência em gestão de
-                                        campanhas...</div>
-                                </div>
-                                <div style="margin-bottom:8px;">
-                                    <div
-                                        style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
-                                        Formação</div>
-                                    <div>Graduação em Marketing pela Universidade Mackenzie...</div>
-                                </div>
-                                <div>
-                                    <div
-                                        style="color:#6b7280;font-size:9px;font-weight:bold;text-transform:uppercase;margin-bottom:3px;">
-                                        Habilidades</div>
-                                    <div>Google Ads, Facebook Ads, Google Analytics...</div>
-                                </div>
-                            </div>
-                        </div>
                         </button>
                         <div class="template-info">
                             <h3>Moderno</h3>
                             <p>Para profissionais experientes</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('moderno')" aria-label="Ver modelo Moderno ampliado">
+                                onclick="event.stopPropagation(); showTemplatePreview('moderno')"
+                                aria-label="Ver modelo Moderno ampliado">
                                 <span aria-hidden="true">🔍</span> Ver Ampliado
                             </button>
                         </div>
                     </article>
 
                     <article class="template-card" role="listitem">
-                        <button class="template-card-button" onclick="showTemplatePreview('executivo')" aria-label="Visualizar modelo Executivo - Para cargos de liderança">
-                        <div class="template-thumbnail" aria-hidden="true"
-                            style="width:100%;height:300px;background:white;border:2px solid #333;padding:0;font-family:'Helvetica Neue',sans-serif;font-size:9px;overflow:hidden;cursor:pointer;transition:transform 0.3s;display:flex;">
-                            <!-- Sidebar -->
-                            <div style="width:30%;background:#2c3e50;height:100%;padding:10px 5px;text-align:center;">
+                        <button class="template-card-button" onclick="showTemplatePreview('executivo')"
+                            aria-label="Visualizar modelo Executivo - Para cargos de liderança">
+                            <div class="template-thumbnail" aria-hidden="true"
+                                style="width:100%;height:300px;background:white;border:2px solid #333;padding:0;font-family:'Helvetica Neue',sans-serif;font-size:9px;overflow:hidden;cursor:pointer;transition:transform 0.3s;display:flex;">
+                                <!-- Sidebar -->
                                 <div
-                                    style="width:22.5px;height:30px;background:#ecf0f1;border-radius:2px;margin:0 auto 10px;">
+                                    style="width:30%;background:#2c3e50;height:100%;padding:10px 5px;text-align:center;">
+                                    <div
+                                        style="width:22.5px;height:30px;background:#ecf0f1;border-radius:2px;margin:0 auto 10px;">
+                                    </div>
+                                    <div style="height:2px;background:#7f8c8d;width:80%;margin:0 auto 5px;"></div>
+                                    <div style="height:2px;background:#7f8c8d;width:60%;margin:0 auto 5px;"></div>
                                 </div>
-                                <div style="height:2px;background:#7f8c8d;width:80%;margin:0 auto 5px;"></div>
-                                <div style="height:2px;background:#7f8c8d;width:60%;margin:0 auto 5px;"></div>
-                            </div>
-                            <!-- Main -->
-                            <div style="width:70%;padding:10px;">
-                                <div style="border-bottom:2px solid #2c3e50;padding-bottom:5px;margin-bottom:10px;">
-                                    <div style="font-weight:bold;color:#2c3e50;">MARIA SILVA</div>
+                                <!-- Main -->
+                                <div style="width:70%;padding:10px;">
+                                    <div style="border-bottom:2px solid #2c3e50;padding-bottom:5px;margin-bottom:10px;">
+                                        <div style="font-weight:bold;color:#2c3e50;">MARIA SILVA</div>
+                                    </div>
+                                    <div style="font-size:8px;color:#333;">Experiência...</div>
                                 </div>
-                                <div style="font-size:8px;color:#333;">Experiência...</div>
                             </div>
-                        </div>
                         </button>
                         <div class="template-info">
                             <h3>Executivo</h3>
                             <p>Para cargos de liderança</p>
                             <button class="preview-btn"
-                                onclick="event.stopPropagation(); showTemplatePreview('executivo')" aria-label="Ver modelo Executivo ampliado">
+                                onclick="event.stopPropagation(); showTemplatePreview('executivo')"
+                                aria-label="Ver modelo Executivo ampliado">
                                 <span aria-hidden="true">🔍</span> Ver Ampliado
                             </button>
                         </div>
@@ -236,9 +251,11 @@
                 </div>
 
                 <!-- Modal de Preview -->
-                <div id="template-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+                <div id="template-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+                    aria-hidden="true">
                     <div class="modal-content">
-                        <button class="close" onclick="closeTemplatePreview()" aria-label="Fechar visualização do modelo">&times;</button>
+                        <button class="close" onclick="closeTemplatePreview()"
+                            aria-label="Fechar visualização do modelo">&times;</button>
                         <h2 id="modal-title" class="visually-hidden">Visualização do modelo de currículo</h2>
                         <div id="modal-template-content"></div>
                         <div style="text-align:center;margin-top:20px;">
@@ -252,44 +269,57 @@
     </main>
 
     <!-- Modal de Análise ATS -->
-    <div id="ats-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ats-modal-title" aria-hidden="true">
+    <div id="ats-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ats-modal-title"
+        aria-hidden="true">
         <div class="modal-content">
-            <button class="close" onclick="closeATSModal()" aria-label="Fechar relatório de análise ATS">&times;</button>
+            <button class="close" onclick="closeATSModal()"
+                aria-label="Fechar relatório de análise ATS">&times;</button>
 
             <div style="text-align: center; margin-bottom: 25px;">
-                <h2 id="ats-modal-title" style="color: #333; margin-bottom: 10px;"><span aria-hidden="true">📊</span> Relatório de Análise ATS</h2>
+                <h2 id="ats-modal-title" style="color: #333; margin-bottom: 10px;"><span aria-hidden="true">📊</span>
+                    Relatório de Análise ATS</h2>
                 <div id="ats-score-container"
-                    style="display: inline-block; padding: 20px; border-radius: 50%; background: #f0f7ff; margin: 10px 0;" aria-live="polite">
-                    <span id="ats-score-value" style="font-size: 48px; font-weight: bold; color: #2563eb;" aria-label="Pontuação">0</span>
+                    style="display: inline-block; padding: 20px; border-radius: 50%; background: #f0f7ff; margin: 10px 0;"
+                    aria-live="polite">
+                    <span id="ats-score-value" style="font-size: 48px; font-weight: bold; color: #2563eb;"
+                        aria-label="Pontuação">0</span>
                     <div style="font-size: 14px; color: #666;" aria-hidden="true">Pontuação</div>
                 </div>
                 <div id="ats-status-badge"
-                    style="margin-top: 10px; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; background: #eee;" aria-live="polite">
+                    style="margin-top: 10px; font-weight: bold; padding: 5px 15px; border-radius: 20px; display: inline-block; background: #eee;"
+                    aria-live="polite">
                     -</div>
             </div>
 
             <div id="ats-report-content">
                 <section class="report-section" aria-labelledby="ats-strengths-heading">
-                    <h3 id="ats-strengths-heading" style="color: #059669; margin-bottom: 10px;"><span aria-hidden="true">✅</span> Pontos Fortes</h3>
+                    <h3 id="ats-strengths-heading" style="color: #059669; margin-bottom: 10px;"><span
+                            aria-hidden="true">✅</span> Pontos Fortes</h3>
                     <ul id="ats-strengths"
-                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;" aria-live="polite">
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;"
+                        aria-live="polite">
                     </ul>
                 </section>
 
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" aria-hidden="true">
 
                 <section class="report-section" aria-labelledby="ats-improvements-heading">
-                    <h3 id="ats-improvements-heading" style="color: #d97706; margin-bottom: 10px;"><span aria-hidden="true">⚠️</span> Oportunidades de Melhoria</h3>
+                    <h3 id="ats-improvements-heading" style="color: #d97706; margin-bottom: 10px;"><span
+                            aria-hidden="true">⚠️</span> Oportunidades de Melhoria</h3>
                     <ul id="ats-improvements"
-                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;" aria-live="polite">
+                        style="list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; text-align: left;"
+                        aria-live="polite">
                     </ul>
                 </section>
 
                 <div id="ats-suggestions-box"
-                    style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; text-align: left;" role="complementary" aria-labelledby="ats-suggestions-heading">
-                    <h4 id="ats-suggestions-heading" style="margin: 0 0 10px 0; color: #92400e;"><span aria-hidden="true">💡</span> Dicas Práticas</h4>
+                    style="margin-top: 25px; padding: 15px; background: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; text-align: left;"
+                    role="complementary" aria-labelledby="ats-suggestions-heading">
+                    <h4 id="ats-suggestions-heading" style="margin: 0 0 10px 0; color: #92400e;"><span
+                            aria-hidden="true">💡</span> Dicas Práticas</h4>
                     <ul id="ats-suggestions"
-                        style="list-style-type: none; padding: 0; font-size: 14px; color: #78350f; display: flex; flex-direction: column; gap: 6px;" aria-live="polite">
+                        style="list-style-type: none; padding: 0; font-size: 14px; color: #78350f; display: flex; flex-direction: column; gap: 6px;"
+                        aria-live="polite">
                     </ul>
                 </div>
             </div>
@@ -314,9 +344,11 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="js/vlibras-widget.js"></script>
     <script src="js/accessibility-widget.js"></script>
     <script src="js/accessibility.js"></script>
+    <script src="js/donation-modal.js"></script>
     <script src="js/main.js"></script>
     <script>
         // (adsbygoogle = window.adsbygoogle || []).push({});

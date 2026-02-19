@@ -1,0 +1,325 @@
+/* ============================================
+   PIX Donation Modal - Styles
+   Modern SaaS-style modal with glassmorphism
+   ============================================ */
+
+/* Overlay */
+.donation-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    padding: 16px;
+}
+
+.donation-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Card */
+.donation-modal {
+    background: #ffffff;
+    border-radius: 20px;
+    max-width: 440px;
+    width: 100%;
+    padding: 36px 28px 28px;
+    position: relative;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: translateY(30px) scale(0.96);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.4s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.donation-overlay.active .donation-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Accent gradient bar at top */
+.donation-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 20px 20px 0 0;
+    background: linear-gradient(90deg, #10b981, #2563eb, #7c3aed);
+}
+
+/* Close button */
+.donation-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.donation-close:hover {
+    color: #475569;
+    background: #f1f5f9;
+}
+
+/* Header */
+.donation-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.donation-header .emoji-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    animation: donationBounce 2s ease-in-out infinite;
+}
+
+.donation-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.donation-header p {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+/* QR Code Container */
+.donation-qr-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.donation-qr-box {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s ease;
+    animation: donationPulse 3s ease-in-out infinite;
+}
+
+.donation-qr-box:hover {
+    border-color: #2563eb;
+}
+
+.donation-qr-box canvas,
+.donation-qr-box img {
+    border-radius: 8px;
+}
+
+.donation-qr-label {
+    margin-top: 12px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    text-align: center;
+}
+
+/* PIX Key Display */
+.donation-pix-key {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin: 16px 0;
+    width: 100%;
+}
+
+.donation-pix-key code {
+    flex: 1;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    color: #334155;
+    word-break: break-all;
+    user-select: all;
+}
+
+.donation-copy-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.donation-copy-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.donation-copy-btn.copied {
+    background: #10b981;
+}
+
+/* Action Buttons */
+.donation-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.donation-btn {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.donation-btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.donation-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.donation-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.donation-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.donation-btn-link {
+    background: none;
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 8px;
+}
+
+.donation-btn-link:hover {
+    color: #64748b;
+}
+
+/* Disclaimer */
+.donation-disclaimer {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    margin-top: 14px;
+    line-height: 1.4;
+}
+
+/* Animations */
+@keyframes donationBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes donationPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.08); }
+}
+
+/* Responsivo Mobile */
+@media (max-width: 480px) {
+    .donation-modal {
+        padding: 28px 20px 20px;
+        border-radius: 16px;
+        max-height: 85vh;
+    }
+
+    .donation-header .emoji-icon {
+        font-size: 40px;
+    }
+
+    .donation-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .donation-header p {
+        font-size: 0.82rem;
+    }
+
+    .donation-qr-box {
+        padding: 16px;
+    }
+
+    .donation-pix-key {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .donation-copy-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .donation-btn {
+        font-size: 0.85rem;
+        padding: 12px 16px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .donation-overlay,
+    .donation-modal,
+    .donation-btn,
+    .donation-copy-btn {
+        transition-duration: 0.01ms !important;
+    }
+
+    .donation-header .emoji-icon,
+    .donation-qr-box {
+        animation: none !important;
+    }
+}
