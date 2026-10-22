@@ -1,12 +1,23 @@
 // Configurações centralizadas
+const parsePositiveInt = (value, fallback) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
 const config = {
     // Servidor
     PORT: process.env.PORT || 3000,
-    NODE_ENV: process.env.NODE_ENV || 'development',
+    NODE_ENV,
 
-    // Rate Limiting
+    // Rate Limiting (somente rotas de escrita da API)
     RATE_LIMIT: {
-        MAX_REQUESTS: 50,
+        MAX_REQUESTS: parsePositiveInt(process.env.RATE_LIMIT_PER_HOUR, 50),
         WINDOW_MS: 60 * 60 * 1000, // 1 hora
         MAX_MAP_SIZE: 1000
     },
@@ -20,9 +31,12 @@ const config = {
             MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB para currículos
             ALLOWED_TYPES: [
                 'application/pdf',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/zip', // DOCX é um ZIP; a assinatura é validada em utils.js
+                'image/jpeg',
+                'image/png'
             ],
-            ALLOWED_EXTENSIONS: ['.pdf', '.docx']
+            ALLOWED_EXTENSIONS: ['.pdf', '.docx', '.jpg', '.jpeg', '.png']
         }
     },
 
@@ -51,11 +65,13 @@ const config = {
         }
     },
 
-    // Templates disponíveis
+    // Templates disponíveis (mantidos em sincronia com server.js)
     TEMPLATES: [
         { id: 'simples', label: 'Simples' },
         { id: 'moderno', label: 'Moderno' },
-        { id: 'executivo', label: 'Executivo' }
+        { id: 'executivo', label: 'Executivo' },
+        { id: 'criativo', label: 'Criativo' },
+        { id: 'elegante', label: 'Elegante' }
     ],
 
     // Segurança
@@ -68,14 +84,24 @@ const config = {
                 // Permitir requisições sem origem (como mobile apps ou curl)
                 if (!origin) return callback(null, true);
 
-                // Em desenvolvimento, permitir localhost
-                if (process.env.NODE_ENV !== 'production') {
+                // Em desenvolvimento, permitir qualquer origem local
+                if (NODE_ENV !== 'production') {
                     return callback(null, true);
                 }
 
-                // Em produção, permitir qualquer subdomínio vercel.app
-                if (origin.endsWith('.vercel.app')) {
+                // Origens explicitamente autorizadas via ALLOWED_ORIGINS
+                if (ALLOWED_ORIGINS.includes(origin)) {
                     return callback(null, true);
+                }
+
+                // Em produção, permitir previews/deploys da Vercel
+                try {
+                    const hostname = new URL(origin).hostname;
+                    if (hostname === 'vercel.app' || hostname.endsWith('.vercel.app')) {
+                        return callback(null, true);
+                    }
+                } catch (error) {
+                    // Origin malformada cai no bloqueio abaixo
                 }
 
                 // Bloquear outros

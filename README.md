@@ -1,240 +1,110 @@
-# 📄 CurrículoFácil - Gerador Automático de Currículos
+# CurrículoFácil - Gerador Automático de Currículos
 
-Sistema completo para criação automática de currículos profissionais com IA, 100% gratuito e monetizado com anúncios.
+Aplicação web gratuita para criar currículos profissionais, com preview, download em PDF e análise de compatibilidade com sistemas ATS.
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
-- ✅ Criação de currículo em 3 minutos
-- ✅ Upload e processamento automático de fotos
-- ✅ Melhoria de texto com IA
-- ✅ 3 modelos profissionais
-- ✅ Preview em tempo real
-- ✅ Download PDF gratuito (sem marca d'água)
-- ✅ Link compartilhável
-- ✅ Integração Google AdSense
-- ✅ Links de afiliados estratégicos
-- ✅ Mobile-first e responsivo
-- ✅ SEO otimizado
+- Formulário com preview em tempo real
+- 5 modelos: Simples, Moderno, Executivo, Criativo e Elegante
+- Upload opcional de foto (JPG/PNG), com redimensionamento e recorte
+- Download do PDF gerado no navegador com `html2pdf.js` (sem marca d'água)
+- Link compartilhável do currículo (`/cv/:id`)
+- Análise ATS por dados preenchidos ou por upload de PDF/DOCX/imagem
+- Extração de PDF (`pdf-parse`), DOCX (`mammoth`) e OCR (`tesseract.js`)
+- Melhoria de texto determinística, sem dependência de API de IA
+- Layout responsivo, páginas de privacidade/termos e anúncios AdSense
 
-## 🛠️ Stack Tecnológica
+## Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript vanilla
-- **Backend**: Node.js + Express
-- **PDF**: Puppeteer
-- **Processamento de Imagem**: Sharp
-- **Deploy**: Vercel
-- **IA**: Claude API (configurável)
+- **Frontend:** HTML5, CSS3 e JavaScript vanilla
+- **Backend:** Node.js + Express
+- **PDF:** gerado no cliente com `html2pdf.js`
+- **Imagens:** `sharp`
+- **Deploy:** Vercel (serverless) ou qualquer host Node.js
 
-## 📦 Instalação
+## Requisitos
 
-1. **Clone o repositório**
-```bash
-git clone https://github.com/seu-usuario/gerador-curriculos.git
-cd gerador-curriculos
-```
+- Node.js >= 20.9
+- npm
 
-2. **Instale as dependências**
+## Instalação
+
 ```bash
 npm install
-```
-
-3. **Configure as variáveis de ambiente**
-```bash
-# Crie um arquivo .env
-CLAUDE_API_KEY=sua_chave_claude_api
-ADSENSE_CLIENT_ID=ca-pub-xxxxxxxxx
-```
-
-4. **Execute em desenvolvimento**
-```bash
+cp .env.example .env
 npm run dev
 ```
 
-5. **Acesse**
-```
-http://localhost:3000
+Acesse `http://localhost:3000`.
+
+Para executar em modo de produção local:
+
+```bash
+npm start
 ```
 
-## 🌐 Deploy na Vercel
+## Variáveis de ambiente
 
-1. **Instale a CLI da Vercel**
+| Variável | Padrão | Descrição |
+| --- | --- | --- |
+| `PORT` | `3000` | Porta do servidor local |
+| `NODE_ENV` | `development` | Ambiente de execução |
+| `RATE_LIMIT_PER_HOUR` | `50` | Limite de escritas na API por IP/hora |
+| `ALLOWED_ORIGINS` | — | Origens CORS extras, separadas por vírgula |
+| `DEBUG_TOKEN` | — | Token para acessar `/api/debug-env` em produção |
+
+Não há chave de IA configurada ou necessária. O projeto não usa a API da Anthropic. Os IDs de AdSense/Google Analytics são definidos diretamente no frontend.
+
+## API
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | `/api/health` e `/api/status` | Health check |
+| POST | `/api/generate-cv` | Gera currículo (`multipart/form-data`) |
+| POST | `/api/ats-analyze-data` | Analisa dados do formulário |
+| POST | `/api/ats-analyze-file` | Analisa upload de currículo |
+| GET | `/cv/:id` | Visualiza currículo compartilhado |
+| GET | `/api/debug-env` | Diagnóstico (bloqueado em produção sem token) |
+
+As rotas de escrita da API têm rate limit. Respostas de erro da API são JSON; rotas de página desconhecidas usam fallback do frontend.
+
+## Testes
+
+```bash
+npm test          # testes unitários e de integração (node:test)
+npm run test:ats  # testes legados do processador ATS
+npm run test:fixes
+```
+
+Os testes cobrem sanitização, validação de upload por magic bytes, rate limiting, extração de DOCX, análise ATS, geração de currículo e health checks.
+
+## Deploy na Vercel
+
+O projeto já inclui `vercel.json` e a entrada `api/index.js`, que exporta o app Express para o runtime serverless.
+
 ```bash
 npm i -g vercel
-```
-
-2. **Faça o deploy**
-```bash
 vercel --prod
 ```
 
-3. **Configure as variáveis de ambiente na Vercel**
-- CLAUDE_API_KEY
-- ADSENSE_CLIENT_ID
+Configurar `NODE_ENV=production` e, se necessário, `ALLOWED_ORIGINS`, `RATE_LIMIT_PER_HOUR` e `DEBUG_TOKEN`.
 
-## 💰 Estratégia de Monetização
+## Limitações conhecidas
 
-### Google AdSense
-- **Banner superior**: Após o hero da landing page
-- **Banner formulário**: No meio do formulário de criação
-- **Banner preview**: Após a geração do currículo
-- **Sidebar**: Para desktop (escondido no mobile)
+- Os currículos compartilhados ficam em memória (`Map`). Em serverless, links podem deixar de funcionar após cold start ou em outra instância. Para produção em escala, usar banco/objeto storage.
+- OCR de PDF escaneado é melhor esforço e pode falhar em arquivos grandes ou de baixa qualidade.
+- O limite de upload e o timeout de OCR precisam ser compatíveis com o plano da Vercel.
+- O override de `@xmldom/xmldom` está fixado em `0.8.15` por compatibilidade com `mammoth`; versões 0.9.x quebram a extração de DOCX.
 
-### Links de Afiliados
-- **Cursos profissionalizantes**: Hotmart, Udemy
-- **Plataformas de emprego**: Vagas.com, LinkedIn
-- **Ferramentas profissionais**: Canva Pro, Office 365
+## Segurança
 
-## 📊 SEO e Marketing
+- Sanitização de texto preservando pontuação legítima
+- Validação de upload por extensão, MIME e magic bytes
+- Rate limiting apenas em rotas de escrita da API
+- Helmet, CORS com allowlist, `trust proxy` restrito e `x-powered-by` desativado
+- Páginas de currículo com `Cache-Control: no-store` e `X-Robots-Tag: noindex`
+- Dados de formulário no `localStorage` expiram em 7 dias
 
-### Palavras-chave Principais
-- "criar currículo grátis"
-- "gerador de currículo online"
-- "currículo profissional"
-- "fazer currículo"
-- "modelo de currículo"
+## Licença
 
-### Estratégias
-1. **Content Marketing**: Blog com dicas de carreira
-2. **Social Media**: Templates no Instagram/Pinterest
-3. **Email Marketing**: Newsletter com dicas
-4. **Parcerias**: Influenciadores de RH
-
-## 🎨 Templates Disponíveis
-
-### 1. Simples
-- Ideal para primeiro emprego
-- Layout clean e profissional
-- Foco na legibilidade
-
-### 2. Moderno
-- Design com gradiente
-- Para profissionais experientes
-- Visual impactante
-
-### 3. Executivo
-- Estilo clássico e elegante
-- Para cargos de liderança
-- Tipografia sofisticada
-
-## 🤖 Integração com IA
-
-### Melhorias Automáticas
-- Correção de português
-- Linguagem mais profissional
-- Adaptação ao cargo desejado
-- Otimização para ATS
-
-### Configuração Claude API
-```javascript
-// Em server.js, substitua a função improveTextWithAI
-async function improveTextWithAI(text, context) {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.CLAUDE_API_KEY,
-            'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
-            max_tokens: 1000,
-            messages: [{
-                role: 'user',
-                content: `Melhore este texto de currículo (${context}): ${text}`
-            }]
-        })
-    });
-    
-    const data = await response.json();
-    return data.content[0].text;
-}
-```
-
-## 📱 Fluxo do Usuário
-
-1. **Landing Page**
-   - CTA forte: "Criar Currículo Grátis"
-   - Benefícios claros
-   - Prova social
-
-2. **Formulário**
-   - Campos obrigatórios mínimos
-   - Upload de foto opcional
-   - Auto-save dos dados
-
-3. **Processamento**
-   - IA melhora os textos
-   - Foto é redimensionada
-   - Template é aplicado
-
-4. **Preview**
-   - Visualização do resultado
-   - Opções de download e compartilhamento
-   - Sugestões de próximos passos
-
-## 🔧 Customizações
-
-### Adicionar Novo Template
-```javascript
-// Em server.js, adicione ao objeto templates
-novoTemplate: (data) => `
-    <div style="seu-css-aqui">
-        <h1>${data.nome}</h1>
-        <!-- Seu HTML aqui -->
-    </div>
-`
-```
-
-### Modificar Melhorias de IA
-```javascript
-// Personalize as melhorias em improveTextWithAI
-const improvements = {
-    experiencia: (text) => {
-        // Suas regras de melhoria
-        return text.replace(/padrão/gi, 'melhorado');
-    }
-};
-```
-
-## 📈 Analytics e Métricas
-
-### KPIs Importantes
-- Taxa de conversão (visitante → currículo criado)
-- Taxa de download de PDF
-- Tempo na página
-- Taxa de compartilhamento
-- Revenue por usuário (RPU)
-
-### Google Analytics
-```html
-<!-- Adicione no <head> de index.html -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'GA_MEASUREMENT_ID');
-</script>
-```
-
-## 🛡️ Segurança
-
-- Validação de uploads (tipo e tamanho)
-- Sanitização de inputs
-- Rate limiting
-- Headers de segurança (Helmet.js)
-- HTTPS obrigatório
-
-## 📞 Suporte
-
-Para dúvidas ou sugestões:
-- Email: contato@curriculofacil.com
-- GitHub Issues: [Link do repositório]
-
-## 📄 Licença
-
-MIT License - Veja o arquivo LICENSE para detalhes.
-
----
-
-**Desenvolvido com ❤️ pela Papel e Sonhos Informática para ajudar pessoas a conseguirem melhores oportunidades de trabalho.**
+MIT.

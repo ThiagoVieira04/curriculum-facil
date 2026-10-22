@@ -591,30 +591,50 @@ function shareCV(cvId) {
     }
 }
 
-// Salvar dados localmente
+// Salvar dados localmente (com expiração para reduzir retenção de dados pessoais)
+const FORM_DATA_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
+
 function saveFormData() {
     const form = document.getElementById('cv-form');
     if (form) {
         const data = new FormData(form);
         const obj = {};
         for (let [key, value] of data.entries()) {
-            obj[key] = value;
+            if (typeof value === 'string') obj[key] = value;
         }
-        localStorage.setItem('cv-form-data', JSON.stringify(obj));
+        try {
+            localStorage.setItem('cv-form-data', JSON.stringify({ savedAt: Date.now(), data: obj }));
+        } catch (error) {
+            console.warn('Não foi possível salvar os dados do formulário:', error);
+        }
     }
 }
 
-// Carregar dados salvos
+// Carregar dados salvos (ignora formato antigo, dados corrompidos ou expirados)
 function loadSavedData() {
-    const saved = localStorage.getItem('cv-form-data');
-    if (saved) {
-        const data = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('cv-form-data');
+        if (!saved) return;
+
+        const parsed = JSON.parse(saved);
+        const data = parsed && parsed.data ? parsed.data : parsed;
+        const savedAt = parsed && parsed.savedAt ? parsed.savedAt : 0;
+
+        if (!data || typeof data !== 'object') return;
+        if (savedAt && Date.now() - savedAt > FORM_DATA_TTL_MS) {
+            localStorage.removeItem('cv-form-data');
+            return;
+        }
+
         Object.keys(data).forEach(key => {
             const input = document.getElementById(key);
-            if (input) {
+            if (input && typeof data[key] === 'string') {
                 input.value = data[key];
             }
         });
+    } catch (error) {
+        console.warn('Dados salvos inválidos; ignorando.', error);
+        localStorage.removeItem('cv-form-data');
     }
 }
 
@@ -944,9 +964,11 @@ async function handleATSAnalyzeFile(event) {
         } else {
             showError(error.message || 'Erro ao analisar o arquivo. Verifique se é um PDF ou DOCX válido.');
         }
+    } finally {
+        // Sempre restaura o botão e permite reenviar (inclusive o mesmo arquivo)
         btn.innerHTML = originalText;
         btn.disabled = false;
-        event.target.value = ''; // Limpa o input
+        event.target.value = '';
     }
 }
 

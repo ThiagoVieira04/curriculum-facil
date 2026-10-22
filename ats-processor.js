@@ -10,6 +10,16 @@ const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
 
+// Promise.race com limpeza do timer para não manter o event loop ocupado
+function withTimeout(promise, timeoutMs, message) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Resultado da extração de texto
  * @typedef {Object} ExtractionResult
@@ -86,31 +96,29 @@ async function applyOCRToPdf(pdfBuffer) {
     try {
         console.log('[OCR-PDF] 🔍 Iniciando OCR em PDF escaneado com timeout 10s...');
         
-        // Salvar PDF temporariamente
-        tempFile = path.join(os.tmpdir(), `ocr_pdf_${Date.now()}.pdf`);
+        // Salvar PDF temporariamente (sufixo aleatório evita colisão entre requisições)
+        tempFile = path.join(os.tmpdir(), `ocr_pdf_${Date.now()}_${Math.random().toString(36).slice(2, 10)}.pdf`);
         await fs.writeFile(tempFile, pdfBuffer);
         
-        // CRÍTICO: Usar Promise.race para garantir timeout
-        const ocrPromise = Tesseract.recognize(
-            tempFile,
-            'por',
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        const progress = Math.round(m.progress * 100);
-                        if (progress % 20 === 0) {
-                            console.log(`[OCR-PDF] Progress: ${progress}%`);
+        // CRÍTICO: timeout com limpeza do timer
+        const result = await withTimeout(
+            Tesseract.recognize(
+                tempFile,
+                'por',
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            if (progress % 20 === 0) {
+                                console.log(`[OCR-PDF] Progress: ${progress}%`);
+                            }
                         }
                     }
                 }
-            }
+            ),
+            OCR_TIMEOUT_MS,
+            'OCR timeout após 10s'
         );
-        
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('OCR timeout após 10s')), OCR_TIMEOUT_MS)
-        );
-        
-        const result = await Promise.race([ocrPromise, timeoutPromise]);
         
         if (result && result.data && result.data.text) {
             const text = (result.data.text || '').trim();
@@ -156,31 +164,29 @@ async function applyOCRToImage(imageBuffer) {
             return { text: '', confidence: 0 };
         }
         
-        // Salvar imagem temporariamente
-        tempFile = path.join(os.tmpdir(), `ocr_img_${Date.now()}.png`);
+        // Salvar imagem temporariamente (sufixo aleatório evita colisão)
+        tempFile = path.join(os.tmpdir(), `ocr_img_${Date.now()}_${Math.random().toString(36).slice(2, 10)}.png`);
         await fs.writeFile(tempFile, imageBuffer);
         
-        // CRÍTICO: Promise.race com timeout
-        const ocrPromise = Tesseract.recognize(
-            tempFile,
-            'por',
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        const progress = Math.round(m.progress * 100);
-                        if (progress % 25 === 0 && progress > 0) {
-                            console.log(`[OCR-IMG] Progress: ${progress}%`);
+        // CRÍTICO: timeout com limpeza do timer
+        const result = await withTimeout(
+            Tesseract.recognize(
+                tempFile,
+                'por',
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            if (progress % 25 === 0 && progress > 0) {
+                                console.log(`[OCR-IMG] Progress: ${progress}%`);
+                            }
                         }
                     }
                 }
-            }
+            ),
+            OCR_TIMEOUT_MS,
+            'OCR timeout após 10s'
         );
-        
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('OCR timeout após 10s')), OCR_TIMEOUT_MS)
-        );
-        
-        const result = await Promise.race([ocrPromise, timeoutPromise]);
         
         const text = (result.data.text || '').trim();
         const confidence = (result.data.confidence || 0) / 100;
@@ -251,6 +257,7 @@ async function processResume(buffer, mimeType) {
     try {
         // 1. Validação inicial
         if (!buffer || buffer.length === 0) {
+            result.confidence = 0;
             result.details.error = 'Buffer vazio';
             result.details.suggestion = 'O arquivo parece estar corrompido. Tente fazer upload novamente.';
             return result;
@@ -260,24 +267,26 @@ async function processResume(buffer, mimeType) {
         const isDocx = mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         const isImage = mimeType && (mimeType.startsWith('image/') || mimeType === 'application/octet-stream');
 
-        // 2. Tentar extrair como PDF
+        // 2. Tentar extrair como PDF (uma única extração; evita parse duplicado)
         if (isPdf) {
             console.log('📄 Detectado: PDF');
             
             try {
-                // Detectar se é escaneado
-                const { isScanned, textLength } = await detectPdfType(buffer);
+                const pdfText = await extractTextFromPdf(buffer);
+                const textLength = pdfText.length;
+                const isScanned = textLength < 100;
+
                 result.details.isScanned = isScanned;
                 result.details.initialTextLength = textLength;
                 
-                if (!isScanned && textLength >= 100) {
+                if (!isScanned) {
                     // PDF com texto selecionável
                     console.log('✅ PDF com texto selecionável detectado');
-                    result.text = await extractTextFromPdf(buffer);
+                    result.text = pdfText;
                     result.method = 'pdf-parse';
                     result.isOCR = false;
                 } else {
-                    // PDF escaneado - tentar OCR
+                    // PDF escaneado - tentar OCR (melhor esforço em serverless)
                     console.log('🔍 PDF escaneado detectado - tentando OCR...');
                     const ocr = await applyOCRToPdf(buffer);
                     if (ocr.text && ocr.text.length > 0) {
@@ -329,10 +338,16 @@ async function processResume(buffer, mimeType) {
             result.text = normalizeTextForATS(result.text);
         }
 
+        // Sem texto não há confiança de extração
+        if (!result.text) {
+            result.confidence = 0;
+        }
+
         // 6. Análise final do resultado
         const finalLength = result.text.length;
         result.details.finalTextLength = finalLength;
-        result.details.textExtractedSuccessfully = finalLength >= 50;
+        result.details.textExtractedSuccessfully = finalLength > 0;
+        result.details.meetsMinimumLength = finalLength >= 50;
 
         console.log(`\n📊 Resumo: Método=${result.method}, OCR=${result.isOCR}, TextLength=${finalLength}, Confiança=${(result.confidence * 100).toFixed(1)}%`);
 

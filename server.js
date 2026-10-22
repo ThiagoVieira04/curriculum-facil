@@ -5,12 +5,8 @@ const multer = require('multer');
 // const sharp = require('sharp');
 // Puppeteer será carregado dinamicamente quando necessário
 const path = require('path');
-const fs = require('fs').promises;
 const cors = require('cors');
 const helmet = require('helmet');
-const pdfParse = require('pdf-parse');
-const mammoth = require('mammoth');
-const fileType = require('file-type');
 
 // Configurações e utilitários
 const config = require('./config');
@@ -30,6 +26,15 @@ const rateLimitMap = new Map();
 function rateLimit(req, res, next) {
     // BYPASS completo durante desenvolvimento
     if (process.env.NODE_ENV !== 'production') {
+        return next();
+    }
+
+    // Não limitar assets estáticos nem leituras: cada página carrega
+    // vários arquivos e o limite deve proteger apenas operações custosas.
+    if (!req.path.startsWith('/api/')) {
+        return next();
+    }
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
         return next();
     }
 
@@ -54,9 +59,11 @@ function rateLimit(req, res, next) {
 // Middleware
 app.use(helmet(config.SECURITY.HELMET_OPTIONS));
 app.use(cors(config.SECURITY.CORS_OPTIONS));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.set('trust proxy', true);
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+// Confia apenas no proxy imediato (Vercel) para evitar spoofing de IP
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 // Ativar Rate Limiting
 app.use(rateLimit);
@@ -64,8 +71,16 @@ app.use(rateLimit);
 // IMPORTANTE: Rotas dinâmicas ANTES de express.static
 // Isso garante que /sobre, /contato, /api/* sejam processadas antes de procurar arquivos estáticos
 
-// Rota de diagnóstico leve (sem dependências pesadas)
+// Rota de diagnóstico leve (sem dependências pesadas).
+// Em produção só responde se DEBUG_TOKEN estiver configurado e for informado.
 app.get('/api/debug-env', (req, res) => {
+    const token = process.env.DEBUG_TOKEN;
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (isProduction && (!token || req.get('x-debug-token') !== token)) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+
     res.json({
         status: 'online',
         node_env: process.env.NODE_ENV,
@@ -78,15 +93,18 @@ app.get('/api/debug-env', (req, res) => {
 
 
 
-// Rota raiz para verificar se servidor está rodando
-app.get('/api/status', (req, res) => {
+// Rotas de health check (mantém /api/status por compatibilidade)
+function healthCheck(req, res) {
     res.json({
         status: 'running',
         environment: process.env.NODE_ENV || 'development',
         vercel: !!process.env.VERCEL,
         timestamp: new Date().toISOString()
     });
-});
+}
+
+app.get('/api/status', healthCheck);
+app.get('/api/health', healthCheck);
 
 // Middleware para logs de requisições
 app.use((req, res, next) => {
@@ -114,6 +132,10 @@ app.get('/empresa', (req, res) => {
 // Rota para compartilhar/visualizar currículo
 app.get('/cv/:id', (req, res) => {
     const { id } = req.params;
+
+    // Currículo contém dados pessoais: não deve ser cacheado por intermediários
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex');
 
     // Buscar currículo no banco de dados em memória
     const cv = cvDatabase.get(id);
@@ -162,8 +184,9 @@ app.get('/cv/:id', (req, res) => {
     `);
 });
 
-// Servir arquivos estáticos DEPOIS das rotas dinâmicas
-app.use(express.static('public'));
+// Servir arquivos estáticos DEPOIS das rotas dinâmicas.
+// __dirname garante o caminho correto na Vercel (não depende do cwd).
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuração do Multer otimizada
 const storage = multer.memoryStorage();
@@ -190,13 +213,17 @@ const formatDate = (dateStr) => {
     return dateStr;
 };
 
-// Limpeza automática otimizada
-setInterval(() => {
+// Limpeza automática otimizada.
+// unref() evita manter o processo/teste vivo (importante em serverless e testes).
+const cleanupInterval = setInterval(() => {
     const cleaned = cleanup.cleanupOldCVs(cvDatabase);
     if (cleaned > 0) {
         logger.info(`Limpeza automática: ${cleaned} currículos removidos`);
     }
 }, config.CLEANUP.INTERVAL_MS);
+if (typeof cleanupInterval.unref === 'function') {
+    cleanupInterval.unref();
+}
 
 // Função para melhorar texto com IA
 async function improveTextWithAI(text, context) {
@@ -1025,13 +1052,25 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
             });
         }
 
-        console.log(`[${requestId}] 📁 Arquivo: ${req.file.originalname} (${req.file.size} bytes)`);
+        // Não registra o nome original do arquivo (pode conter dado pessoal)
+        console.log(`[${requestId}] 📁 Arquivo recebido (${req.file.size} bytes)`);
 
-        // 2. Detectar tipo MIME
-        let typeInfo = await fileType.fromBuffer(req.file.buffer);
-        let mimeType = typeInfo ? typeInfo.mime : req.file.mimetype || 'application/octet-stream';
-        
-        console.log(`[${requestId}] 🔍 Tipo: ${mimeType}`);
+        // 2. Validar extensão + magic bytes (não confiar no MIME do navegador)
+        const resumeValidation = validation.validateFileUpload(req.file, 'resume');
+        if (!resumeValidation.valid) {
+            clearTimeout(timeoutId);
+            return garantirResposta(415, {
+                error: 'Formato de arquivo não suportado',
+                message: resumeValidation.error
+            });
+        }
+
+        let mimeType = resumeValidation.detectedMime || req.file.mimetype || 'application/octet-stream';
+        if (mimeType === 'application/zip') {
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        console.log(`[${requestId}] 🔍 Tipo validado: ${mimeType}`);
 
         // 3. Processar currículo COM TIMEOUT PROTETOR
         console.log(`[${requestId}] ⚙️  Processando (timeout: 15s)...`);
@@ -1121,23 +1160,27 @@ app.post('/api/ats-analyze-file', (req, res, next) => {
 // Análise ATS de Dados (JSON)
 app.post('/api/ats-analyze-data', (req, res) => {
     try {
-        const { data } = req.body;
-        if (!data) {
+        const { data } = req.body || {};
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
             return res.status(400).json({ error: 'Dados não fornecidos' });
         }
 
-        // Concatena campos para análise de texto
-        const text = `
-            ${data.nome} ${data.cargo}
-            ${data.objetivo || ''}
-            ${data.experiencia}
-            ${data.formacao}
-            ${data.habilidades}
-            ${data.cursos || ''}
-            ${data.empresa1 || ''} ${data.funcao1 || ''}
-            ${data.empresa2 || ''} ${data.funcao2 || ''}
-            ${data.empresa3 || ''} ${data.funcao3 || ''}
-        `;
+        // Concatena campos para análise de texto (sem "undefined" no conteúdo)
+        const text = [
+            data.nome, data.cargo, data.objetivo, data.experiencia,
+            data.formacao, data.habilidades, data.cursos,
+            data.empresa1, data.funcao1,
+            data.empresa2, data.funcao2,
+            data.empresa3, data.funcao3
+        ].filter(value => typeof value === 'string' && value.trim()).join('\n');
+
+        // Falha de dados não pode ser confundida com currículo de baixa qualidade
+        if (text.trim().length < 50) {
+            return res.status(400).json({
+                error: 'Dados insuficientes',
+                message: 'Envie os dados do currículo para que a análise ATS possa ser realizada.'
+            });
+        }
 
         const report = analyzeATS(text, data);
         res.json(report);
@@ -1165,107 +1208,21 @@ app.all('/api/download-pdf/:id?', async (req, res) => {
     }
 });
 
+// As páginas legais completas vivem em public/. Servir o arquivo evita
+// manter duas versões divergentes do mesmo conteúdo.
 app.get('/privacidade', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Política de Privacidade - CurrículoFácil</title>
-            <link rel="stylesheet" href="/css/style.css">
-        </head>
-        <body>
-            <div class="container" style="padding: 100px 20px 50px;">
-                <h1>Política de Privacidade</h1>
-                <p>Última atualização: ${new Date().toLocaleDateString('pt-BR')}</p>
-                
-                <h2>Coleta de Dados</h2>
-                <p>Coletamos apenas os dados necessários para gerar seu currículo: nome, contato, experiência profissional e formação.</p>
-                
-                <h2>Uso dos Dados</h2>
-                <p>Seus dados são usados exclusivamente para gerar e disponibilizar seu currículo. Não compartilhamos com terceiros.</p>
-                
-                <h2>Armazenamento</h2>
-                <p>Os dados são armazenados temporariamente (24 horas) apenas para permitir o download e compartilhamento do currículo. Após esse período, são automaticamente excluídos.</p>
-                
-                <h2>Cookies e Tecnologias de Rastreamento</h2>
-                <p>Utilizamos cookies para:</p>
-                <ul>
-                    <li>Melhorar a experiência do usuário</li>
-                    <li>Salvar temporariamente dados do formulário</li>
-                    <li>Análise de tráfego via Google Analytics</li>
-                    <li>Exibição de anúncios relevantes via Google AdSense</li>
-                </ul>
-                
-                <h2>Google Analytics</h2>
-                <p>Utilizamos o Google Analytics para entender como os usuários interagem com nosso site. Essas informações nos ajudam a melhorar nossos serviços. Você pode desativar o rastreamento do Google Analytics instalando o complemento de desativação do navegador.</p>
-                
-                <h2>Google AdSense</h2>
-                <p>Nosso site exibe anúncios fornecidos pelo Google AdSense. O Google pode usar cookies para exibir anúncios baseados em suas visitas anteriores ao nosso site e outros sites. Você pode desativar anúncios personalizados visitando as Configurações de Anúncios do Google.</p>
-                
-                <h2>Seus Direitos</h2>
-                <p>Você tem o direito de:</p>
-                <ul>
-                    <li>Solicitar a exclusão de seus dados</li>
-                    <li>Saber quais dados coletamos</li>
-                    <li>Corrigir informações incorretas</li>
-                    <li>Retirar seu consentimento a qualquer momento</li>
-                </ul>
-                
-                <h2>Contato</h2>
-                <p>Para questões sobre privacidade, entre em contato: <strong>tsmv04@hotmail.com</strong></p>
-                
-                <p><strong>&copy; 2026 CurrículoFácil - Todos os direitos reservados à Papel e Sonhos Informática</strong></p>
-                
-                <p><a href="/">← Voltar ao início</a></p>
-            </div>
-        </body>
-        </html>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'privacidade.html'));
 });
 
 app.get('/termos', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Termos de Uso - CurrículoFácil</title>
-            <link rel="stylesheet" href="/css/style.css">
-        </head>
-        <body>
-            <div class="container" style="padding: 100px 20px 50px;">
-                <h1>Termos de Uso</h1>
-                <p>Última atualização: ${new Date().toLocaleDateString('pt-BR')}</p>
-                
-                <h2>Uso do Serviço</h2>
-                <p>O CurrículoFácil é um serviço gratuito para criação de currículos profissionais.</p>
-                
-                <h2>Responsabilidades</h2>
-                <p>Você é responsável pela veracidade das informações fornecidas em seu currículo.</p>
-                
-                <h2>Propriedade Intelectual</h2>
-                <p>Os templates e o sistema são de propriedade do CurrículoFácil. O conteúdo do seu currículo pertence a você.</p>
-                
-                <h2>Limitações</h2>
-                <p>O serviço é fornecido "como está", sem garantias de disponibilidade contínua.</p>
-                
-                <p><strong>&copy; 2026 CurrículoFácil - Todos os direitos reservados à Papel e Sonhos Informática</strong></p>
-                
-                <p><a href="/">← Voltar ao início</a></p>
-            </div>
-        </body>
-        </html>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'termos.html'));
 });
 
 // Fallback para SPA (Single Page Application) - Deve ficar APÓS todas as rotas e ANTES do tratamento de erro
 app.get('*', (req, res, next) => {
-    // Se for rota de API não encontrada, passa para o error handler (404 JSON)
+    // Rota de API não encontrada responde JSON (nunca o index.html)
     if (req.path.startsWith('/api/')) {
-        return next();
+        return res.status(404).json({ error: 'Rota de API não encontrada' });
     }
     // Para outras rotas, serve o index.html
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -1423,6 +1380,10 @@ app.use((error, req, res, next) => {
         });
     } catch (logError) {
         console.error('Falha ao logar erro:', logError);
+    }
+
+    if (res.headersSent) {
+        return next(error);
     }
 
     if (error instanceof multer.MulterError) {
