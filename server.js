@@ -1165,14 +1165,30 @@ app.post('/api/ats-analyze-data', (req, res) => {
             return res.status(400).json({ error: 'Dados não fornecidos' });
         }
 
-        // Concatena campos para análise de texto (sem "undefined" no conteúdo)
-        const text = [
-            data.nome, data.cargo, data.objetivo, data.experiencia,
-            data.formacao, data.habilidades, data.cursos,
-            data.empresa1, data.funcao1,
-            data.empresa2, data.funcao2,
-            data.empresa3, data.funcao3
-        ].filter(value => typeof value === 'string' && value.trim()).join('\n');
+        // Concatena campos com rótulos para que a análise encontre contato e seções
+        const fields = [
+            ['Nome', data.nome],
+            ['Cargo', data.cargo],
+            ['Email', data.email],
+            ['Telefone', data.telefone],
+            ['Cidade', data.cidade],
+            ['Objetivo', data.objetivo],
+            ['Experiência', data.experiencia],
+            ['Formação', data.formacao],
+            ['Habilidades', data.habilidades],
+            ['Cursos', data.cursos],
+            ['Empresa', data.empresa1],
+            ['Função', data.funcao1],
+            ['Empresa', data.empresa2],
+            ['Função', data.funcao2],
+            ['Empresa', data.empresa3],
+            ['Função', data.funcao3]
+        ];
+
+        const text = fields
+            .filter(([, value]) => typeof value === 'string' && value.trim())
+            .map(([label, value]) => `${label}: ${value.trim()}`)
+            .join('\n');
 
         // Falha de dados não pode ser confundida com currículo de baixa qualidade
         if (text.trim().length < 50) {

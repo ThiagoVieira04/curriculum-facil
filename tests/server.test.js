@@ -128,6 +128,7 @@ test('análise ATS de dados retorna score para conteúdo válido', async () => {
                 cargo: 'Desenvolvedora',
                 email: 'maria@example.com',
                 telefone: '(11) 99999-9999',
+                objetivo: 'Atuar como desenvolvedora de software.',
                 experiencia,
                 formacao: 'Ciência da Computação',
                 habilidades: 'Node.js, JavaScript'
@@ -138,7 +139,8 @@ test('análise ATS de dados retorna score para conteúdo válido', async () => {
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(typeof body.score, 'number');
-    assert.ok(Array.isArray(body.strengths));
+    assert.ok(body.score >= 50, `score inesperado: ${body.score}`);
+    assert.ok(body.strengths.some(item => /contato/i.test(item)));
     assert.ok(Array.isArray(body.improvements));
     assert.ok(Array.isArray(body.suggestions));
 });
