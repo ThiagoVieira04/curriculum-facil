@@ -102,6 +102,17 @@ Validação específica de DOCX:
 DOCX_OK=true
 ```
 
+## Deploy e configuração Vercel
+
+- Projeto: `curriculum-facil` (`prj_UmqOnJASEb3QvHLBGKowRJj7LIbR`).
+- Produção: `https://curriculum-facil-one.vercel.app`.
+- Runtime: Node.js 24.x, framework Express.
+- `vercel.json`: `maxDuration` de 60s para `api/index.js` e região `gru1` (São Paulo).
+- Variáveis de ambiente: nenhuma obrigatória; `NODE_ENV=production` é definida pela Vercel.
+- `node_modules` removido do Git (5.201 arquivos), mantido apenas localmente e reinstalado no build.
+- Deploys de produção validados: `609c8e3`, `f591e5f`, `6ce2cbc`, `3084e24`, `529726c`.
+- Smoke de produção: `/api/health` 200, `/api/status` 200, `/api/debug-env` 404, 404 de API em JSON, geração de currículo e link compartilhável 200, ATS de dados com score 55, uploads inválidos 415.
+
 ## Arquivos alterados
 
 - `server.js`: rotas, validação, CORS, rate limit, health, erros, cache.
@@ -117,11 +128,9 @@ DOCX_OK=true
 ## Riscos e pendências
 
 1. **Persistência em memória:** `cvDatabase` é um `Map`. Em serverless, links `/cv/:id` quebram em cold start ou outra instância. O README prometia 24h. Solução recomendada: Redis/KV ou storage de objetos.
-2. **`vercel.json` não foi alterado:** `maxDuration` e região dependem do plano e de autorização. Validar timeout de OCR/uploads no ambiente real.
-3. **Node na Vercel:** `sharp@0.35.5` exige Node >= 20.9. Confirmar a versão de runtime configurada no projeto antes do deploy.
-4. **`api/index-production.js`:** dead code quebrado; remover após autorização.
-5. **`node_modules` versionado:** o `.gitignore` novo não remove arquivos já rastreados; é necessário `git rm -r --cached node_modules` se houver repositório.
-6. **Sem validação em produção:** não houve acesso à instância Vercel; todos os resultados são locais.
-7. **OCR:** é melhor esforço. PDFs escaneados podem falhar ou estourar timeout, especialmente em serverless.
-8. **DOCX:** qualquer ZIP com extensão `.docx` passa na validação de magic bytes e só falha na extração. Isso é tratado como erro de parse, não como risco de execução.
-9. **AdSense/Analytics:** IDs estão no frontend; não foram alterados nem validados por não haver acesso às contas.
+2. **`api/index-production.js`:** dead code quebrado; remover após autorização.
+3. **OCR:** é melhor esforço. PDFs escaneados podem falhar ou estourar timeout, mesmo com `maxDuration` de 60s.
+4. **DOCX:** qualquer ZIP com extensão `.docx` passa na validação de magic bytes e só falha na extração. Isso é tratado como erro de parse, não como risco de execução.
+5. **AdSense/Analytics:** IDs estão no frontend; não foram alterados nem validados por não haver acesso às contas.
+6. **Domínio:** o projeto usa atualmente apenas `curriculum-facil-one.vercel.app`. Para usar domínio próprio, é necessário configurar DNS e adicionar o domínio no projeto.
+7. **Sessão de deploy:** o token da Vercel usado nesta operação deve ser revogado após o uso.
