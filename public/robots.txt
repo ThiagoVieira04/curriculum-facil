@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /cv/
 
-Sitemap: https://gerador-curriculos.vercel.app/sitemap.xml
+Sitemap: https://curriculum-facil-one.vercel.app/sitemap.xml

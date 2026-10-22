@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://gerador-curriculos.vercel.app/</loc>
+        <loc>https://curriculum-facil-one.vercel.app/</loc>
         <lastmod>2025-01-01</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://gerador-curriculos.vercel.app/sobre</loc>
+        <loc>https://curriculum-facil-one.vercel.app/sobre</loc>
         <lastmod>2025-01-01</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://gerador-curriculos.vercel.app/contato</loc>
+        <loc>https://curriculum-facil-one.vercel.app/contato</loc>
         <lastmod>2025-01-01</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://gerador-curriculos.vercel.app/privacidade</loc>
+        <loc>https://curriculum-facil-one.vercel.app/privacidade</loc>
         <lastmod>2025-01-01</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://gerador-curriculos.vercel.app/termos</loc>
+        <loc>https://curriculum-facil-one.vercel.app/termos</loc>
         <lastmod>2025-01-01</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
